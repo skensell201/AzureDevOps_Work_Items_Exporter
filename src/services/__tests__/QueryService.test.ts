@@ -34,4 +34,31 @@ describe('QueryService', () => {
     expect(res.workItems).toEqual([{ id: 5 }]);
     expect(api.get).toHaveBeenCalledWith('/Datagile/_apis/wit/wiql/q1?api-version=6.0');
   });
+
+  it('recursively expands folders deeper than the depth-2 API limit', async () => {
+    const get = jest.fn().mockImplementation((url: string) => {
+      if (url.includes('/_apis/wit/queries?')) {
+        // Top-level tree: a folder that HAS children but whose children weren't returned.
+        return Promise.resolve({
+          value: [
+            { id: 'shared', name: 'Shared Queries', path: 'Shared Queries', isFolder: true, hasChildren: true, children: [] },
+          ],
+        });
+      }
+      // Expansion by folder id returns the deep query.
+      return Promise.resolve({
+        id: 'shared',
+        name: 'Shared Queries',
+        path: 'Shared Queries',
+        isFolder: true,
+        hasChildren: true,
+        children: [{ id: 'deep', name: 'Deep Query', path: 'Shared Queries/Deep Query', isFolder: false }],
+      });
+    });
+    const api = { get, post: jest.fn() };
+    const svc = new QueryService(api);
+    const tree = await svc.getQueryTree('Datagile');
+    expect(tree[0].children.map((c) => c.name)).toEqual(['Deep Query']);
+    expect(get).toHaveBeenCalledWith('/Datagile/_apis/wit/queries/shared?$depth=2&api-version=6.0');
+  });
 });

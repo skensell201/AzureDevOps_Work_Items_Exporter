@@ -66,10 +66,35 @@ export interface QueryNode {
   name: string;
   path: string;
   isFolder: boolean;
+  hasChildren?: boolean;
   children: QueryNode[];
 }
 
 export interface NamedRef {
   id: string;
   name: string;
+}
+
+export interface SharedUser {
+  id: string;
+  displayName: string;
+}
+
+export interface TemplateSource {
+  kind: 'backlog' | 'query';
+  project: string;
+  team?: string;
+  backlogId?: string;
+  queryId?: string;
+  /** Human-readable description for the list, e.g. "Datagile / Ops / Stories". */
+  label: string;
+}
+
+export interface Template {
+  id: string;
+  name: string;
+  source: TemplateSource;
+  columns: Column[];
+  owner: SharedUser;
+  sharedWith: SharedUser[];
 }

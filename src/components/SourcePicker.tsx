@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NamedRef, QueryNode } from '../models/types';
+
+export interface Selection {
+  tab: 'backlog' | 'query';
+  project: string;
+  team: string;
+  level: string;
+  query: string;
+}
 
 interface Props {
   projects: NamedRef[];
   teams: NamedRef[];
   levels: NamedRef[];
   queryTree: QueryNode[];
-  onProjectChange: (projectId: string) => void;
-  onTeamChange: (projectId: string, teamId: string) => void;
+  value: Selection;
+  onChange: (s: Selection) => void;
+  onProjectSelected: (projectId: string) => void;
+  onTeamSelected: (projectId: string, teamId: string) => void;
+  onRefreshQueries: () => void;
   onLoadBacklog: (project: string, team: string, backlogId: string) => void;
   onLoadQuery: (project: string, queryId: string) => void;
 }
@@ -17,88 +28,75 @@ function leafQueries(nodes: QueryNode[], depth = 0): { id: string; label: string
   const out: { id: string; label: string }[] = [];
   for (const n of nodes) {
     if (n.isFolder) out.push(...leafQueries(n.children, depth + 1));
-    else out.push({ id: n.id, label: `${'  '.repeat(depth)}${n.name}` });
+    else out.push({ id: n.id, label: `${'  '.repeat(depth)}${n.name}` });
   }
   return out;
 }
 
 export function SourcePicker(props: Props): JSX.Element {
-  const [tab, setTab] = useState<'backlog' | 'query'>('backlog');
-  const [project, setProject] = useState('');
-  const [team, setTeam] = useState('');
-  const [level, setLevel] = useState('');
-  const [query, setQuery] = useState('');
+  const v = props.value;
 
-  function changeProject(value: string): void {
-    setProject(value);
-    setTeam('');
-    setLevel('');
-    setQuery('');
-    props.onProjectChange(value);
+  function changeProject(project: string): void {
+    props.onChange({ ...v, project, team: '', level: '', query: '' });
+    props.onProjectSelected(project);
   }
-  function changeTeam(value: string): void {
-    setTeam(value);
-    setLevel('');
-    props.onTeamChange(project, value);
+  function changeTeam(team: string): void {
+    props.onChange({ ...v, team, level: '' });
+    props.onTeamSelected(v.project, team);
   }
 
   return (
     <div className="source-picker">
       <div className="tabs">
-        <button className={tab === 'backlog' ? 'active' : ''} onClick={() => setTab('backlog')}>
+        <button className={v.tab === 'backlog' ? 'active' : ''} onClick={() => props.onChange({ ...v, tab: 'backlog' })}>
           Backlog
         </button>
-        <button className={tab === 'query' ? 'active' : ''} onClick={() => setTab('query')}>
+        <button className={v.tab === 'query' ? 'active' : ''} onClick={() => props.onChange({ ...v, tab: 'query' })}>
           Query
         </button>
       </div>
 
       <label htmlFor="project">Project</label>
-      <select id="project" value={project} onChange={(e) => changeProject(e.target.value)}>
+      <select id="project" value={v.project} onChange={(e) => changeProject(e.target.value)}>
         <option value="">Select project…</option>
         {props.projects.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-          </option>
+          <option key={p.id} value={p.id}>{p.name}</option>
         ))}
       </select>
 
-      {tab === 'backlog' ? (
+      {v.tab === 'backlog' ? (
         <>
           <label htmlFor="team">Team</label>
-          <select id="team" value={team} onChange={(e) => changeTeam(e.target.value)}>
+          <select id="team" value={v.team} onChange={(e) => changeTeam(e.target.value)}>
             <option value="">Select team…</option>
             {props.teams.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
+              <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
           <label htmlFor="level">Backlog level</label>
-          <select id="level" value={level} onChange={(e) => setLevel(e.target.value)}>
+          <select id="level" value={v.level} onChange={(e) => props.onChange({ ...v, level: e.target.value })}>
             <option value="">Select level…</option>
             {props.levels.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
+              <option key={l.id} value={l.id}>{l.name}</option>
             ))}
           </select>
-          <button disabled={!project || !team || !level} onClick={() => props.onLoadBacklog(project, team, level)}>
+          <button disabled={!v.project || !v.team || !v.level} onClick={() => props.onLoadBacklog(v.project, v.team, v.level)}>
             Load backlog
           </button>
         </>
       ) : (
         <>
-          <label htmlFor="query">Query</label>
-          <select id="query" value={query} onChange={(e) => setQuery(e.target.value)}>
-            <option value="">Select query…</option>
-            {leafQueries(props.queryTree).map((q) => (
-              <option key={q.id} value={q.id}>
-                {q.label}
-              </option>
-            ))}
-          </select>
-          <button disabled={!project || !query} onClick={() => props.onLoadQuery(project, query)}>
+          <div className="query-row">
+            <label htmlFor="query">Query</label>
+            <select id="query" value={v.query} onChange={(e) => props.onChange({ ...v, query: e.target.value })}>
+              <option value="">Select query…</option>
+              {leafQueries(props.queryTree).map((q) => (
+                <option key={q.id} value={q.id}>{q.label}</option>
+              ))}
+            </select>
+            <button type="button" title="Refresh queries" onClick={() => props.onRefreshQueries()}>↻</button>
+          </div>
+          <button disabled={!v.project || !v.query} onClick={() => props.onLoadQuery(v.project, v.query)}>
             Load query
           </button>
         </>
