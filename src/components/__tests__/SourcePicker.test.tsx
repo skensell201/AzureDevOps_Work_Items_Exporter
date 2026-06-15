@@ -45,4 +45,17 @@ describe('SourcePicker', () => {
     fireEvent.click(getByText('Load query'));
     expect(props.onLoadQuery).toHaveBeenCalledWith('p1', 'q1');
   });
+
+  it('resets team and level when the project changes (prevents loading a stale combo)', () => {
+    const props = baseProps();
+    const { getByLabelText } = render(<SourcePicker {...props} />);
+    fireEvent.change(getByLabelText('Project'), { target: { value: 'p1' } });
+    fireEvent.change(getByLabelText('Team'), { target: { value: 't1' } });
+    fireEvent.change(getByLabelText('Backlog level'), { target: { value: 'Microsoft.RequirementCategory' } });
+    expect((getByLabelText('Team') as HTMLSelectElement).value).toBe('t1');
+    // Re-selecting/changing the project must clear the dependent selects.
+    fireEvent.change(getByLabelText('Project'), { target: { value: 'p1' } });
+    expect((getByLabelText('Team') as HTMLSelectElement).value).toBe('');
+    expect((getByLabelText('Backlog level') as HTMLSelectElement).value).toBe('');
+  });
 });

@@ -17,7 +17,7 @@ function leafQueries(nodes: QueryNode[], depth = 0): { id: string; label: string
   const out: { id: string; label: string }[] = [];
   for (const n of nodes) {
     if (n.isFolder) out.push(...leafQueries(n.children, depth + 1));
-    else out.push({ id: n.id, label: `${'  '.repeat(depth)}${n.name}` });
+    else out.push({ id: n.id, label: `${'  '.repeat(depth)}${n.name}` });
   }
   return out;
 }
@@ -31,10 +31,14 @@ export function SourcePicker(props: Props): JSX.Element {
 
   function changeProject(value: string): void {
     setProject(value);
+    setTeam('');
+    setLevel('');
+    setQuery('');
     props.onProjectChange(value);
   }
   function changeTeam(value: string): void {
     setTeam(value);
+    setLevel('');
     props.onTeamChange(project, value);
   }
 
