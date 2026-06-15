@@ -1,0 +1,23 @@
+body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 16px; color: #1f1f1f; }
+h2 { margin: 0 0 12px; }
+.layout { display: flex; gap: 16px; align-items: flex-start; }
+.sidebar { flex: 0 0 320px; }
+.main { flex: 1 1 auto; min-width: 0; }
+.source-picker, .column-picker { border: 1px solid #d6d6d6; border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+.source-picker label, .column-picker label { display: block; margin: 6px 0 2px; font-size: 12px; }
+.source-picker select, .source-picker input, .column-picker > input { width: 100%; box-sizing: border-box; }
+.tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+.tabs button { flex: 1; }
+.tabs .active { font-weight: 600; border-bottom: 2px solid #0078d4; }
+.field-list { max-height: 260px; overflow: auto; border: 1px solid #eee; padding: 6px; margin: 6px 0; }
+.field-list label { display: block; font-size: 13px; }
+.rollup-add { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.export-menu { display: flex; gap: 8px; margin-bottom: 8px; }
+.grid-wrap { overflow: auto; max-height: 70vh; border: 1px solid #d6d6d6; border-radius: 6px; }
+.data-grid { border-collapse: collapse; width: 100%; font-size: 13px; }
+.data-grid th, .data-grid td { border: 1px solid #eee; padding: 4px 8px; text-align: left; white-space: nowrap; }
+.data-grid thead th { position: sticky; top: 0; background: #f3f3f3; }
+.grid-note { padding: 6px 8px; background: #fff4ce; font-size: 12px; }
+.error-box { background: #fde7e9; border: 1px solid #f1707b; padding: 10px; border-radius: 6px; margin: 8px 0; }
+.warnings { background: #fff4ce; padding: 8px; border-radius: 6px; margin: 8px 0; font-size: 13px; }
+.progress { margin: 8px 0; font-size: 13px; color: #555; }
