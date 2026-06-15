@@ -35,7 +35,7 @@ export function computeRollups(args: Args): Rollups {
 
   // Post-order DFS from each root so children are computed before parents (cycle-safe via visited).
   const visited = new Set<number>();
-  const roots = ids.filter((id) => !parentOf.get(id));
+  const roots = ids.filter((id) => parentOf.get(id) == null);
 
   function dfs(id: number, depth: number, ancestors: string[]): void {
     if (visited.has(id)) return;
