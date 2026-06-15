@@ -2,12 +2,23 @@ import { Rollups } from '../models/types';
 
 const DEFAULT_CLOSED = new Set(['Closed', 'Done', 'Completed']);
 
+/** A rollup-sum spec: a numeric field, optionally scoped to one work item type. */
+export interface SumSpec {
+  field: string;
+  ofType?: string;
+}
+
+/** Stable key for a sum spec, shared by computeRollups output and TableBuilder lookup. */
+export function rollupKey(field: string, ofType?: string): string {
+  return `${field}@${ofType ?? ''}`;
+}
+
 interface Args {
   ids: number[];
   parentOf: Map<number, number | null>;
   childrenOf: Map<number, number[]>;
   fields: Map<number, Record<string, unknown>>;
-  sumFields: string[];
+  sums: SumSpec[];
   closedStates?: Set<string>;
 }
 
@@ -22,11 +33,12 @@ function title(fields: Map<number, Record<string, unknown>>, id: number): string
 
 /** Computes subtree sums, descendant counts, and hierarchy path/level/parent per work item. */
 export function computeRollups(args: Args): Rollups {
-  const { ids, parentOf, childrenOf, fields, sumFields } = args;
+  const { ids, parentOf, childrenOf, fields, sums } = args;
   const closed = args.closedStates ?? DEFAULT_CLOSED;
 
   const sum = new Map<string, Map<number, number>>();
-  for (const f of sumFields) sum.set(f, new Map());
+  const sumKeys = sums.map((s) => ({ ...s, key: rollupKey(s.field, s.ofType) }));
+  for (const s of sumKeys) sum.set(s.key, new Map());
   const countAll = new Map<number, number>();
   const countClosed = new Map<number, number>();
   const path = new Map<number, string>();
@@ -49,7 +61,12 @@ export function computeRollups(args: Args): Rollups {
     let descAll = 0;
     let descClosed = 0;
     const selfFields = fields.get(id) ?? {};
-    for (const f of sumFields) sum.get(f)!.set(id, num(selfFields[f]));
+    const selfType = selfFields['System.WorkItemType'];
+    // Self contributes its field value only when no type scope is set, or its type matches.
+    for (const s of sumKeys) {
+      const matches = !s.ofType || s.ofType === selfType;
+      sum.get(s.key)!.set(id, matches ? num(selfFields[s.field]) : 0);
+    }
 
     for (const child of childrenOf.get(id) ?? []) {
       dfs(child, depth + 1, [...ancestors, selfTitle]);
@@ -57,7 +74,7 @@ export function computeRollups(args: Args): Rollups {
       const childState = fields.get(child)?.['System.State'];
       const childClosed = typeof childState === 'string' && closed.has(childState) ? 1 : 0;
       descClosed += childClosed + (countClosed.get(child) ?? 0);
-      for (const f of sumFields) sum.get(f)!.set(id, (sum.get(f)!.get(id) ?? 0) + (sum.get(f)!.get(child) ?? 0));
+      for (const s of sumKeys) sum.get(s.key)!.set(id, (sum.get(s.key)!.get(id) ?? 0) + (sum.get(s.key)!.get(child) ?? 0));
     }
     countAll.set(id, descAll);
     countClosed.set(id, descClosed);

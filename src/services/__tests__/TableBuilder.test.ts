@@ -1,9 +1,10 @@
 import { buildTable } from '../TableBuilder';
+import { rollupKey } from '../RollupService';
 import { Column, Rollups } from '../../models/types';
 
 function emptyRollups(): Rollups {
   return {
-    sum: new Map([['Microsoft.VSTS.Scheduling.Effort', new Map([[1, 8], [2, 3]])]]),
+    sum: new Map([[rollupKey('Microsoft.VSTS.Scheduling.Effort'), new Map([[1, 8], [2, 3]])]]),
     countAll: new Map([[1, 2], [2, 0]]),
     countClosed: new Map([[1, 1], [2, 0]]),
     path: new Map([[1, 'Epic'], [2, 'Epic / Story']]),

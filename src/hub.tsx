@@ -58,6 +58,7 @@ function App({ services }: { services: Services }): JSX.Element {
   const [teams, setTeams] = useState<NamedRef[]>([]);
   const [levels, setLevels] = useState<NamedRef[]>([]);
   const [queryTree, setQueryTree] = useState<QueryNode[]>([]);
+  const [witTypes, setWitTypes] = useState<string[]>([]);
   const [fields, setFields] = useState<FieldDef[]>([]);
   const [columns, setColumns] = useState<Column[]>(FieldService.defaultColumns());
   const [table, setTable] = useState<Table | null>(null);
@@ -94,6 +95,7 @@ function App({ services }: { services: Services }): JSX.Element {
   async function onProjectSelected(projectId: string): Promise<void> {
     if (!projectId) return;
     try {
+      setWitTypes(await services.projects.getWorkItemTypes(projectId));
       setTeams(await services.projects.getTeams(projectId));
       setQueryTree(await services.query.getQueryTree(projectId));
     } catch (e) {
@@ -200,6 +202,7 @@ function App({ services }: { services: Services }): JSX.Element {
     try {
       // Restore the column set first so a subsequent load uses it.
       setColumns(t.columns);
+      setWitTypes(await services.projects.getWorkItemTypes(s.project));
       if (s.kind === 'backlog') {
         setSelection({ tab: 'backlog', project: s.project, team: s.team ?? '', level: s.backlogId ?? '', query: '' });
         const fetchedTeams = await services.projects.getTeams(s.project);
@@ -280,7 +283,7 @@ function App({ services }: { services: Services }): JSX.Element {
             onLoadBacklog={loadBacklog}
             onLoadQuery={loadQuery}
           />
-          <ColumnPicker fields={fields} value={columns} onChange={setColumns} />
+          <ColumnPicker fields={fields} value={columns} onChange={setColumns} types={witTypes} />
           {lastLoad && (
             <button onClick={() => void lastLoad()} disabled={progress !== null}>
               Apply columns / reload

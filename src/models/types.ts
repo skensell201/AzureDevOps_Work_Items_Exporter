@@ -35,7 +35,7 @@ export interface TreeRelations {
 /** A column the user can show. Stored fields + computed/online columns. */
 export type Column =
   | { kind: 'field'; referenceName: string; header: string }
-  | { kind: 'rollupSum'; field: string; header: string }
+  | { kind: 'rollupSum'; field: string; ofType?: string; header: string }
   | { kind: 'childCount'; variant: 'all' | 'closed'; header: string }
   | { kind: 'parent'; header: string }
   | { kind: 'hierarchyPath'; header: string }

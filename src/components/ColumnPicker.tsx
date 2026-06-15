@@ -5,6 +5,8 @@ interface Props {
   fields: FieldDef[];
   value: Column[];
   onChange: (cols: Column[]) => void;
+  /** Work item type names, for scoping a rollup sum (e.g. "Sum of Task Original Estimate"). */
+  types?: string[];
 }
 
 const NUMERIC = new Set(['integer', 'double']);
@@ -33,9 +35,10 @@ const COMPUTED: { id: string; header: string; make: () => Column; match: (c: Col
   },
 ];
 
-export function ColumnPicker({ fields, value, onChange }: Props): JSX.Element {
+export function ColumnPicker({ fields, value, onChange, types = [] }: Props): JSX.Element {
   const [search, setSearch] = useState('');
   const [sumField, setSumField] = useState('');
+  const [sumType, setSumType] = useState('');
 
   const numeric = useMemo(() => fields.filter((f) => NUMERIC.has(f.type)), [fields]);
   const checkedRefs = useMemo(
@@ -61,9 +64,14 @@ export function ColumnPicker({ fields, value, onChange }: Props): JSX.Element {
     if (!sumField) return;
     const f = numeric.find((n) => n.referenceName === sumField);
     if (!f) return;
-    if (value.some((c) => c.kind === 'rollupSum' && c.field === sumField)) return;
-    onChange([...value, { kind: 'rollupSum', field: f.referenceName, header: `Sum of ${f.name}` }]);
+    const ofType = sumType || undefined;
+    if (value.some((c) => c.kind === 'rollupSum' && c.field === sumField && c.ofType === ofType)) return;
+    const col: Column = ofType
+      ? { kind: 'rollupSum', field: f.referenceName, ofType, header: `Sum of ${ofType} ${f.name}` }
+      : { kind: 'rollupSum', field: f.referenceName, header: `Sum of ${f.name}` };
+    onChange([...value, col]);
     setSumField('');
+    setSumType('');
   }
 
   return (
@@ -90,6 +98,15 @@ export function ColumnPicker({ fields, value, onChange }: Props): JSX.Element {
           {numeric.map((f) => (
             <option key={f.referenceName} value={f.referenceName}>
               {f.name}
+            </option>
+          ))}
+        </select>
+        <label htmlFor="sumType">Of type</label>
+        <select id="sumType" value={sumType} onChange={(e) => setSumType(e.target.value)}>
+          <option value="">Any type</option>
+          {types.map((t) => (
+            <option key={t} value={t}>
+              {t}
             </option>
           ))}
         </select>

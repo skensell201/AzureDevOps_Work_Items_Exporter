@@ -21,4 +21,14 @@ describe('ProjectService', () => {
     expect(await svc.getTeams('p1')).toEqual([{ id: 't1', name: 'Ops Team' }]);
     expect(api.get).toHaveBeenCalledWith('/_apis/projects/p1/teams?api-version=6.0');
   });
+
+  it('lists work item type names for a project', async () => {
+    const api: ApiClient = {
+      get: jest.fn().mockResolvedValue({ value: [{ name: 'Epic' }, { name: 'Task' }] }),
+      post: jest.fn(),
+    };
+    const svc = new ProjectService(api);
+    expect(await svc.getWorkItemTypes('Datagile')).toEqual(['Epic', 'Task']);
+    expect(api.get).toHaveBeenCalledWith('/Datagile/_apis/wit/workitemtypes?api-version=6.0');
+  });
 });

@@ -15,4 +15,12 @@ export class ProjectService {
     );
     return res.value;
   }
+
+  /** Work item type names in the project's process (for type-scoped rollup sums). */
+  async getWorkItemTypes(project: string): Promise<string[]> {
+    const res = await this.api.get<{ value: { name: string }[] }>(
+      `/${encodeURIComponent(project)}/_apis/wit/workitemtypes?api-version=6.0`
+    );
+    return res.value.map((t) => t.name);
+  }
 }

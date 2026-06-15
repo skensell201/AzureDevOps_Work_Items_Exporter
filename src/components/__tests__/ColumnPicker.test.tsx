@@ -37,6 +37,19 @@ describe('ColumnPicker', () => {
     ]);
   });
 
+  it('adds a type-scoped "Sum of <type> <field>" column', () => {
+    const onChange = jest.fn();
+    const { getByLabelText, getByText } = render(
+      <ColumnPicker fields={fields} value={[]} onChange={onChange} types={['Task', 'Bug']} />
+    );
+    fireEvent.change(getByLabelText('Add rollup sum of'), { target: { value: 'Microsoft.VSTS.Scheduling.Effort' } });
+    fireEvent.change(getByLabelText('Of type'), { target: { value: 'Task' } });
+    fireEvent.click(getByText('Add sum column'));
+    expect(onChange).toHaveBeenCalledWith([
+      { kind: 'rollupSum', field: 'Microsoft.VSTS.Scheduling.Effort', ofType: 'Task', header: 'Sum of Task Effort' },
+    ]);
+  });
+
   it('filters the field list by the search box', () => {
     const { getByPlaceholderText, queryByLabelText } = render(<ColumnPicker fields={fields} value={[]} onChange={jest.fn()} />);
     fireEvent.change(getByPlaceholderText('Search fields...'), { target: { value: 'eff' } });

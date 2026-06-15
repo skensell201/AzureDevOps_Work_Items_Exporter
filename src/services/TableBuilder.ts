@@ -1,4 +1,5 @@
 import { CellValue, Column, Rollups, Table } from '../models/types';
+import { rollupKey } from './RollupService';
 
 function fieldValue(raw: unknown): CellValue {
   if (raw === null || raw === undefined) return null;
@@ -16,7 +17,7 @@ function cell(col: Column, id: number, fields: Map<number, Record<string, unknow
     case 'field':
       return fieldValue(fields.get(id)?.[col.referenceName]);
     case 'rollupSum':
-      return rollups.sum.get(col.field)?.get(id) ?? null;
+      return rollups.sum.get(rollupKey(col.field, col.ofType))?.get(id) ?? null;
     case 'childCount':
       return (col.variant === 'all' ? rollups.countAll : rollups.countClosed).get(id) ?? 0;
     case 'parent':

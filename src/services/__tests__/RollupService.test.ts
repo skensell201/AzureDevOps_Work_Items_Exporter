@@ -1,4 +1,4 @@
-import { computeRollups } from '../RollupService';
+import { computeRollups, rollupKey } from '../RollupService';
 
 describe('computeRollups', () => {
   // Tree: 1(Epic) -> 2(Feature) -> 3(Task,eff 5,Closed), 4(Task,eff 3,New)
@@ -13,10 +13,10 @@ describe('computeRollups', () => {
     [2, [3, 4]],
   ]);
   const fields = new Map<number, Record<string, unknown>>([
-    [1, { 'System.Title': 'Epic', 'System.State': 'New' }],
-    [2, { 'System.Title': 'Feature', 'System.State': 'Active' }],
-    [3, { 'System.Title': 'T3', 'System.State': 'Closed', 'Microsoft.VSTS.Scheduling.Effort': 5 }],
-    [4, { 'System.Title': 'T4', 'System.State': 'New', 'Microsoft.VSTS.Scheduling.Effort': 3 }],
+    [1, { 'System.Title': 'Epic', 'System.State': 'New', 'System.WorkItemType': 'Epic' }],
+    [2, { 'System.Title': 'Feature', 'System.State': 'Active', 'System.WorkItemType': 'Feature' }],
+    [3, { 'System.Title': 'T3', 'System.State': 'Closed', 'System.WorkItemType': 'Task', 'Microsoft.VSTS.Scheduling.Effort': 5 }],
+    [4, { 'System.Title': 'T4', 'System.State': 'New', 'System.WorkItemType': 'Task', 'Microsoft.VSTS.Scheduling.Effort': 3 }],
   ]);
 
   const r = computeRollups({
@@ -24,14 +24,33 @@ describe('computeRollups', () => {
     parentOf,
     childrenOf,
     fields,
-    sumFields: ['Microsoft.VSTS.Scheduling.Effort'],
+    sums: [{ field: 'Microsoft.VSTS.Scheduling.Effort' }],
   });
 
   it('sums a numeric field over the whole subtree (inclusive)', () => {
-    const eff = r.sum.get('Microsoft.VSTS.Scheduling.Effort')!;
+    const eff = r.sum.get(rollupKey('Microsoft.VSTS.Scheduling.Effort'))!;
     expect(eff.get(1)).toBe(8);
     expect(eff.get(2)).toBe(8);
     expect(eff.get(3)).toBe(5);
+  });
+
+  it('scopes a rollup sum to a work item type (e.g. Sum of Task Effort)', () => {
+    const scoped = computeRollups({
+      ids: [1, 2, 3, 4],
+      parentOf,
+      childrenOf,
+      fields: new Map([
+        ...fields,
+        // Give the Feature its own Effort to prove the type scope excludes it.
+        [2, { 'System.Title': 'Feature', 'System.State': 'Active', 'System.WorkItemType': 'Feature', 'Microsoft.VSTS.Scheduling.Effort': 100 }],
+      ]),
+      sums: [{ field: 'Microsoft.VSTS.Scheduling.Effort', ofType: 'Task' }],
+    });
+    const taskEff = scoped.sum.get(rollupKey('Microsoft.VSTS.Scheduling.Effort', 'Task'))!;
+    // Only Tasks (3,4) contribute: 5 + 3 = 8, the Feature's 100 is excluded.
+    expect(taskEff.get(1)).toBe(8);
+    expect(taskEff.get(2)).toBe(8);
+    expect(taskEff.get(3)).toBe(5);
   });
 
   it('counts all descendants and closed descendants', () => {
@@ -58,9 +77,9 @@ describe('computeRollups', () => {
         [1, {}],
         [2, { 'Microsoft.VSTS.Scheduling.Effort': 'oops' }],
       ]),
-      sumFields: ['Microsoft.VSTS.Scheduling.Effort'],
+      sums: [{ field: 'Microsoft.VSTS.Scheduling.Effort' }],
     });
-    expect(r2.sum.get('Microsoft.VSTS.Scheduling.Effort')!.get(1)).toBe(0);
+    expect(r2.sum.get(rollupKey('Microsoft.VSTS.Scheduling.Effort'))!.get(1)).toBe(0);
   });
 
   it('aggregates closed counts transitively up to the root', () => {
@@ -81,7 +100,7 @@ describe('computeRollups', () => {
       parentOf: lParentOf,
       childrenOf: lChildrenOf,
       fields: lFields,
-      sumFields: [],
+      sums: [],
       closedStates: new Set(['Завершено']),
     });
     expect(withCustom.countClosed.get(1)).toBe(1);
@@ -91,7 +110,7 @@ describe('computeRollups', () => {
       parentOf: lParentOf,
       childrenOf: lChildrenOf,
       fields: lFields,
-      sumFields: [],
+      sums: [],
     });
     expect(withDefault.countClosed.get(1)).toBe(0);
   });
@@ -104,7 +123,7 @@ describe('computeRollups', () => {
         parentOf: new Map<number, number | null>([[5, 99]]),
         childrenOf: new Map<number, number[]>(),
         fields: new Map([[5, { 'System.Title': 'Orphan' }]]),
-        sumFields: [],
+        sums: [],
       });
     }).not.toThrow();
     expect(res.level.get(5)).toBe(0);
@@ -123,7 +142,7 @@ describe('computeRollups', () => {
           [1, { 'System.Title': 'A', 'System.State': 'New' }],
           [2, { 'System.Title': 'B', 'System.State': 'New' }],
         ]),
-        sumFields: [],
+        sums: [],
       });
     }).not.toThrow();
     expect(res.level.has(1)).toBe(true);

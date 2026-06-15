@@ -3,7 +3,7 @@ import { BacklogService } from './BacklogService';
 import { QueryService } from './QueryService';
 import { WorkItemService } from './WorkItemService';
 import { StateService } from './StateService';
-import { computeRollups } from './RollupService';
+import { computeRollups, SumSpec, rollupKey } from './RollupService';
 import { buildTable } from './TableBuilder';
 import { parseRelations } from './parseRelations';
 
@@ -19,8 +19,17 @@ export function neededFields(columns: Column[]): string[] {
   return [...set];
 }
 
-function sumFieldsOf(columns: Column[]): string[] {
-  return [...new Set(columns.filter((c) => c.kind === 'rollupSum').map((c) => (c as { field: string }).field))];
+function sumSpecsOf(columns: Column[]): SumSpec[] {
+  const seen = new Set<string>();
+  const specs: SumSpec[] = [];
+  for (const c of columns) {
+    if (c.kind !== 'rollupSum') continue;
+    const key = rollupKey(c.field, c.ofType);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    specs.push({ field: c.field, ofType: c.ofType });
+  }
+  return specs;
 }
 
 function needsClosed(columns: Column[]): boolean {
@@ -80,7 +89,7 @@ export class ExportOrchestrator {
       parentOf: tree.parentOf,
       childrenOf: tree.childrenOf,
       fields,
-      sumFields: sumFieldsOf(columns),
+      sums: sumSpecsOf(columns),
       closedStates,
     });
     return { table: buildTable({ rowIds, columns, fields, rollups }), warnings: [] };
