@@ -71,7 +71,7 @@ export class ExportOrchestrator {
 
   private async finish(project: string, rowIds: number[], tree: TreeRelations, columns: Column[]): Promise<BuildResult> {
     const allIds = [...new Set([...rowIds, ...tree.ids])];
-    const fields = await this.s.workItems.getFieldsBatch(allIds, neededFields(columns));
+    const fields = await this.s.workItems.getFieldsBatch(project, allIds, neededFields(columns));
     const closedStates = needsClosed(columns)
       ? await this.s.states.getCompletedStates(project, distinctTypes(fields))
       : undefined;

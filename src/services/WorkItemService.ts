@@ -24,15 +24,20 @@ export class WorkItemService {
     return parseRelations(res.workItemRelations ?? []);
   }
 
-  /** Fetches fields for the given ids in chunks of 200; merges into id -> fields. */
-  async getFieldsBatch(ids: number[], fields: string[]): Promise<Map<number, Record<string, unknown>>> {
+  /** Fetches fields for the given ids in chunks of 200; merges into id -> fields.
+   *  Project-scoped: the collection-level workitemsbatch route 404s on some on-prem servers. */
+  async getFieldsBatch(
+    project: string,
+    ids: number[],
+    fields: string[]
+  ): Promise<Map<number, Record<string, unknown>>> {
     const result = new Map<number, Record<string, unknown>>();
     if (ids.length === 0) return result;
     const chunks: number[][] = [];
     for (let i = 0; i < ids.length; i += CHUNK) chunks.push(ids.slice(i, i + CHUNK));
     const responses = await runBatched(chunks, (chunk) =>
       this.api.post<{ value: { id: number; fields: Record<string, unknown> }[] }>(
-        '/_apis/wit/workitemsbatch?api-version=6.0',
+        `/${encodeURIComponent(project)}/_apis/wit/workitemsbatch?api-version=6.0`,
         { ids: chunk, fields }
       )
     );

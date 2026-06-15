@@ -26,17 +26,20 @@ describe('WorkItemService', () => {
     );
     const api: ApiClient = { get: jest.fn(), post };
     const svc = new WorkItemService(api);
-    const map = await svc.getFieldsBatch(ids, ['System.Id']);
+    const map = await svc.getFieldsBatch('Datagile', ids, ['System.Id']);
     expect(map.size).toBe(250);
     expect(map.get(1)).toEqual({ 'System.Id': 1 });
     expect(post).toHaveBeenCalledTimes(2); // 200 + 50
-    expect(post).toHaveBeenCalledWith('/_apis/wit/workitemsbatch?api-version=6.0', expect.objectContaining({ fields: ['System.Id'] }));
+    expect(post).toHaveBeenCalledWith(
+      '/Datagile/_apis/wit/workitemsbatch?api-version=6.0',
+      expect.objectContaining({ fields: ['System.Id'] })
+    );
   });
 
   it('returns empty map for no ids without calling the API', async () => {
     const api: ApiClient = { get: jest.fn(), post: jest.fn() };
     const svc = new WorkItemService(api);
-    const map = await svc.getFieldsBatch([], ['System.Id']);
+    const map = await svc.getFieldsBatch('Datagile', [], ['System.Id']);
     expect(map.size).toBe(0);
     expect(api.post).not.toHaveBeenCalled();
   });
