@@ -1,49 +1,96 @@
-body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 16px; color: #1f1f1f; }
-h2 { margin: 0 0 12px; }
+/* Theme tokens map to Azure DevOps CSS variables (RGB triples) with light-theme fallbacks,
+   so the hub adapts to light / dark / high-contrast automatically. */
+body {
+  --wie-surface: rgba(var(--palette-neutral-0, 255, 255, 255), 1);
+  --wie-surface-alt: rgba(var(--palette-neutral-4, 243, 243, 243), 1);
+  --wie-text: rgba(var(--text-primary-color, 31, 31, 31), 1);
+  --wie-text-muted: rgba(var(--text-secondary-color, 102, 102, 102), 1);
+  --wie-border: rgba(var(--palette-neutral-20, 214, 214, 214), 1);
+  --wie-border-subtle: rgba(var(--palette-neutral-8, 234, 234, 234), 1);
+  --wie-accent: rgba(var(--communication-foreground, 0, 120, 212), 1);
+
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 16px;
+  color: var(--wie-text);
+  color-scheme: light dark;
+}
+h2 { margin: 0 0 12px; color: var(--wie-text); }
+
+/* Form controls inherit the theme so they're legible on dark backgrounds. */
+input, select, button, textarea {
+  font: inherit;
+  color: var(--wie-text);
+  background-color: var(--wie-surface);
+  border: 1px solid var(--wie-border);
+  border-radius: 3px;
+  padding: 3px 6px;
+}
+button { cursor: pointer; background-color: var(--wie-surface-alt); }
+button:disabled { opacity: 0.5; cursor: default; }
+
 .layout { display: flex; gap: 16px; align-items: flex-start; }
 .sidebar { flex: 0 0 320px; }
 .main { flex: 1 1 auto; min-width: 0; }
-.source-picker, .column-picker { border: 1px solid #d6d6d6; border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+
+.source-picker, .column-picker, .templates-panel {
+  border: 1px solid var(--wie-border); border-radius: 6px; padding: 12px; margin-bottom: 12px;
+  background: var(--wie-surface);
+}
 .source-picker label, .column-picker label { display: block; margin: 6px 0 2px; font-size: 12px; }
 .source-picker select, .source-picker input, .column-picker > input { width: 100%; box-sizing: border-box; }
+
 .tabs { display: flex; gap: 4px; margin-bottom: 8px; }
 .tabs button { flex: 1; }
-.tabs .active { font-weight: 600; border-bottom: 2px solid #0078d4; }
-.field-list { max-height: 260px; overflow: auto; border: 1px solid #eee; padding: 6px; margin: 6px 0; }
-.field-list label { display: block; font-size: 13px; }
+.tabs .active { font-weight: 600; border-bottom: 2px solid var(--wie-accent); }
+
+.field-list, .computed-list { max-height: 260px; overflow: auto; border: 1px solid var(--wie-border-subtle); padding: 6px; margin: 6px 0; }
+.field-list label, .computed-list label { display: block; font-size: 13px; }
 .rollup-add { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
 .export-menu { display: flex; gap: 8px; margin-bottom: 8px; }
-.grid-wrap { overflow: auto; max-height: 70vh; border: 1px solid #d6d6d6; border-radius: 6px; }
-.data-grid { border-collapse: collapse; width: 100%; font-size: 13px; }
-.data-grid th, .data-grid td { border: 1px solid #eee; padding: 4px 8px; text-align: left; white-space: nowrap; }
-.data-grid thead th { position: sticky; top: 0; background: #f3f3f3; }
-.grid-note { padding: 6px 8px; background: #fff4ce; font-size: 12px; }
-.error-box { background: #fde7e9; border: 1px solid #f1707b; padding: 10px; border-radius: 6px; margin: 8px 0; }
-.warnings { background: #fff4ce; padding: 8px; border-radius: 6px; margin: 8px 0; font-size: 13px; }
-.progress { margin: 8px 0; font-size: 13px; color: #555; }
-.templates-panel { border: 1px solid #d6d6d6; border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+
+.grid-wrap { overflow: auto; max-height: 70vh; border: 1px solid var(--wie-border); border-radius: 6px; }
+.data-grid { border-collapse: collapse; width: 100%; font-size: 13px; color: var(--wie-text); }
+.data-grid th, .data-grid td { border: 1px solid var(--wie-border-subtle); padding: 4px 8px; text-align: left; white-space: nowrap; }
+.data-grid thead th { position: sticky; top: 0; background: var(--wie-surface-alt); }
+.grid-note { padding: 6px 8px; background: #fff4ce; color: #4a3b00; font-size: 12px; }
+
+/* Status boxes keep fixed light backgrounds, so pin dark text for contrast in any theme. */
+.error-box { background: #fde7e9; color: #6e0811; border: 1px solid #f1707b; padding: 10px; border-radius: 6px; margin: 8px 0; }
+.warnings { background: #fff4ce; color: #4a3b00; padding: 8px; border-radius: 6px; margin: 8px 0; font-size: 13px; }
+.progress { margin: 8px 0; font-size: 13px; color: var(--wie-text-muted); }
+
 .template-save { display: flex; gap: 6px; }
 .template-save input { flex: 1; }
-.template-hint { font-size: 12px; color: #777; margin-top: 6px; }
+.template-hint { font-size: 12px; color: var(--wie-text-muted); margin-top: 6px; }
 .tm-open { width: 100%; margin-top: 8px; }
-.tm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: flex-start; justify-content: center; z-index: 1000; }
-.tm-modal { background: #fff; margin-top: 6vh; width: min(760px, 92vw); max-height: 84vh; display: flex; flex-direction: column; border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
-.tm-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #eee; }
-.tm-filters { display: flex; gap: 8px; align-items: center; padding: 10px 16px; border-bottom: 1px solid #eee; }
+
+.tm-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: flex-start; justify-content: center; z-index: 1000; }
+.tm-modal {
+  background: var(--wie-surface); color: var(--wie-text);
+  margin-top: 6vh; width: min(760px, 92vw); max-height: 84vh;
+  display: flex; flex-direction: column; border-radius: 8px;
+  border: 1px solid var(--wie-border); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+.tm-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--wie-border-subtle); }
+.tm-filters { display: flex; gap: 8px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--wie-border-subtle); }
 .tm-filters input { flex: 1; }
 .tm-list { list-style: none; margin: 0; padding: 0; overflow: auto; }
-.tm-row { padding: 8px 16px; border-bottom: 1px solid #f1f1f1; }
+.tm-row { padding: 8px 16px; border-bottom: 1px solid var(--wie-border-subtle); }
 .tm-main { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 .tm-name { font-weight: 600; }
-.tm-badge { font-size: 11px; padding: 1px 6px; border-radius: 10px; background: #eef; color: #335; }
-.tm-badge.tm-query { background: #efe; color: #353; }
-.tm-src { font-size: 12px; color: #777; }
-.tm-owner { font-size: 11px; color: #999; margin-left: auto; }
+.tm-badge { font-size: 11px; padding: 1px 6px; border-radius: 10px; background: rgba(var(--communication-foreground, 0, 120, 212), 0.15); color: var(--wie-accent); }
+.tm-badge.tm-query { background: rgba(var(--palette-neutral-20, 214, 214, 214), 0.5); color: var(--wie-text); }
+.tm-src { font-size: 12px; color: var(--wie-text-muted); }
+.tm-owner { font-size: 11px; color: var(--wie-text-muted); margin-left: auto; }
 .tm-actions { display: flex; gap: 6px; margin-top: 6px; }
-.tm-empty { padding: 16px; color: #777; }
+.tm-empty { padding: 16px; color: var(--wie-text-muted); }
+
 .query-row { display: flex; gap: 6px; align-items: center; }
 .query-row select { flex: 1; }
-.share-control { border: 1px solid #0078d4; border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+
+.share-control { border: 1px solid var(--wie-accent); border-radius: 6px; padding: 12px; margin: 8px 0; background: var(--wie-surface); }
 .share-head { display: flex; justify-content: space-between; align-items: center; }
 .share-list, .share-results { list-style: none; padding: 0; margin: 6px 0; }
 .share-search { display: flex; gap: 6px; }
