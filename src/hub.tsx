@@ -21,7 +21,7 @@ import { DataGrid } from './components/DataGrid';
 import { ExportMenu } from './components/ExportMenu';
 import { ProgressBar } from './components/ProgressBar';
 import { TemplatesPanel } from './components/TemplatesPanel';
-import { ShareControl } from './components/ShareControl';
+import { TemplatesManager } from './components/TemplatesManager';
 
 interface Services {
   projects: ProjectService;
@@ -68,7 +68,7 @@ function App({ services }: { services: Services }): JSX.Element {
   const [selection, setSelection] = useState<Selection>(EMPTY_SELECTION);
   const [lastSource, setLastSource] = useState<TemplateSource | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [sharing, setSharing] = useState<Template | null>(null);
+  const [managerOpen, setManagerOpen] = useState(false);
 
   const canSave = lastSource !== null;
   const visible = visibleTemplates(templates, services.me.id);
@@ -250,11 +250,10 @@ function App({ services }: { services: Services }): JSX.Element {
     }
   }
 
-  async function onShareChange(t: Template, users: SharedUser[]): Promise<void> {
+  async function onShareTemplate(t: Template, users: SharedUser[]): Promise<void> {
     try {
       const updated: Template = { ...t, sharedWith: users };
       await services.templatesSvc.save(updated);
-      setSharing(updated);
       await reloadTemplates();
     } catch (e) {
       setError(describeError(e));
@@ -286,22 +285,11 @@ function App({ services }: { services: Services }): JSX.Element {
             </button>
           )}
           <TemplatesPanel
-            templates={visible}
-            currentUserId={services.me.id}
+            count={visible.length}
             canSave={canSave}
             onSave={(name) => void onSaveTemplate(name)}
-            onLoad={(t) => void onLoadTemplate(t)}
-            onDelete={(t) => void onDeleteTemplate(t)}
-            onShare={(t) => setSharing(t)}
+            onOpenManager={() => setManagerOpen(true)}
           />
-          {sharing && (
-            <ShareControl
-              sharedWith={sharing.sharedWith}
-              search={(q) => services.identity.search(q)}
-              onChange={(users) => void onShareChange(sharing, users)}
-              onClose={() => setSharing(null)}
-            />
-          )}
         </div>
         <div className="main">
           <ProgressBar step={progress} />
@@ -321,6 +309,20 @@ function App({ services }: { services: Services }): JSX.Element {
           )}
         </div>
       </div>
+      {managerOpen && (
+        <TemplatesManager
+          templates={visible}
+          currentUserId={services.me.id}
+          search={(q) => services.identity.search(q)}
+          onLoad={(t) => {
+            setManagerOpen(false);
+            void onLoadTemplate(t);
+          }}
+          onDelete={(t) => void onDeleteTemplate(t)}
+          onShareChange={(t, users) => void onShareTemplate(t, users)}
+          onClose={() => setManagerOpen(false)}
+        />
+      )}
     </div>
   );
 }
