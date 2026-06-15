@@ -35,5 +35,6 @@ npm run package   # -> out/local.workitems-export-<version>.vsix
 
 - Preview is capped at 500 rows (the downloaded file is not).
 - Rollups follow hierarchy (Child) links only.
-- Closed-state detection uses a fixed set (Closed / Done / Completed).
+- "Closed child count" uses the process's real `Completed`-category states (locale-aware); if those states can't be read it falls back to a fixed English set (Closed / Done / Completed).
 - Template sharing is "soft" privacy: visibility is filtered client-side from a collection-scoped store.
+- Sharing targets individual users; sharing with a group does not expand to its members — add each person individually.
