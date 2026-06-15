@@ -1,0 +1,8 @@
+.superpowers/
+node_modules/
+dist/
+*.vsix
+.worktrees/
+out/
+CLAUDE.md
+docs/superpowers/
