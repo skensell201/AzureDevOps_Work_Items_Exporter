@@ -66,6 +66,7 @@ export interface QueryNode {
   name: string;
   path: string;
   isFolder: boolean;
+  hasChildren?: boolean;
   children: QueryNode[];
 }
 
