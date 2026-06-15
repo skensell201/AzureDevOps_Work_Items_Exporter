@@ -16,11 +16,12 @@ backlog level or a saved query to **CSV** or **Excel**, with a configurable colu
 - **Templates**: save a source (backlog or query) + column set as a reusable template, then load it later in one click. The saved-query list is **refreshable** and expands deep folders.
 - **Sharing**: share a template you own with other collection users; recipients see it in their own list (templates are owned-or-shared filtered per user).
 
-> **Scopes (v1.1):** Templates and sharing require the additional scopes
-> `vso.extension_data` (to store templates in the extension's collection-scoped
-> document store) and `vso.identity` (to search users for sharing), alongside the
-> existing `vso.work` and `vso.project`. Re-authorizing the extension is required
-> after upgrading from v1.0.
+> **Scopes (v1.1):** `vso.work`, `vso.project`, and `vso.identity` (the last for the
+> template-sharing user search). Template storage uses the in-page Extension Data
+> Service, which needs no extra manifest scope. Re-authorizing the extension is
+> required after upgrading from v1.0. Note: `vso.extension_data` must NOT be declared
+> — Azure DevOps Server rejects mixing it (a "modern" scope) with the uri-based
+> `vso.*` scopes ("Cannot mix uri based and modern scopes").
 
 ## Install
 
