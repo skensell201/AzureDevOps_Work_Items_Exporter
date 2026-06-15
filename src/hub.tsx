@@ -33,6 +33,8 @@ interface Services {
   identity: IdentityService;
   templatesSvc: TemplateService;
   me: SharedUser;
+  /** Set when shared (server) template storage was unavailable and a local fallback is in use. */
+  templatesWarning?: string;
 }
 
 const EMPTY_SELECTION: Selection = { tab: 'backlog', project: '', team: '', level: '', query: '' };
@@ -294,6 +296,11 @@ function App({ services }: { services: Services }): JSX.Element {
         <div className="main">
           <ProgressBar step={progress} />
           {error && <div className="error-box">{error}</div>}
+          {services.templatesWarning && (
+            <div className="warnings">
+              <div>&#9888; {services.templatesWarning}</div>
+            </div>
+          )}
           {warnings.length > 0 && (
             <div className="warnings">
               {warnings.map((w, i) => (
@@ -329,7 +336,41 @@ function App({ services }: { services: Services }): JSX.Element {
 
 function describeError(e: unknown): string {
   if (e instanceof Error) return e.message;
+  if (typeof e === 'object' && e !== null) {
+    const obj = e as Record<string, unknown>;
+    if (typeof obj.message === 'string') return obj.message;
+    const server = obj.serverError as { message?: unknown } | undefined;
+    if (server && typeof server.message === 'string') return server.message;
+    try {
+      return JSON.stringify(e, Object.getOwnPropertyNames(e));
+    } catch {
+      /* fall through */
+    }
+  }
   return String(e);
+}
+
+/** localStorage-backed fallback when the server Extension Data Service is unavailable. */
+class LocalDocumentStore implements DocumentStore {
+  private key(collection: string): string {
+    return `wie.templates.${collection}`;
+  }
+  async getDocuments(collection: string): Promise<Template[]> {
+    const raw = localStorage.getItem(this.key(collection));
+    return raw ? (JSON.parse(raw) as Template[]) : [];
+  }
+  async setDocument(collection: string, doc: Template): Promise<Template> {
+    const all = await this.getDocuments(collection);
+    const i = all.findIndex((d) => d.id === doc.id);
+    if (i >= 0) all[i] = doc;
+    else all.push(doc);
+    localStorage.setItem(this.key(collection), JSON.stringify(all));
+    return doc;
+  }
+  async deleteDocument(collection: string, id: string): Promise<void> {
+    const all = (await this.getDocuments(collection)).filter((d) => d.id !== id);
+    localStorage.setItem(this.key(collection), JSON.stringify(all));
+  }
 }
 
 async function start(): Promise<void> {
@@ -347,14 +388,30 @@ async function start(): Promise<void> {
   const states = new StateService(api);
   const orchestrator = new ExportOrchestrator({ backlog, query, workItems, states });
   const identity = new IdentityService(api);
-  const dataSvc = await SDK.getService<IExtensionDataService>(CommonServiceIds.ExtensionDataService);
-  const dataManager = await dataSvc.getExtensionDataManager(SDK.getExtensionContext().id, token);
-  const templatesSvc = new TemplateService(dataManager as unknown as DocumentStore);
-  const user = SDK.getUser();
-  const me: SharedUser = { id: user.id, displayName: user.displayName };
+
+  let me: SharedUser = { id: 'me', displayName: 'You' };
+  try {
+    const user = SDK.getUser();
+    me = { id: user.id, displayName: user.displayName };
+  } catch {
+    /* keep fallback identity */
+  }
+
+  // Template storage must never break the rest of the hub: fall back to localStorage on failure.
+  let templatesSvc: TemplateService;
+  let templatesWarning: string | undefined;
+  try {
+    const dataSvc = await SDK.getService<IExtensionDataService>(CommonServiceIds.ExtensionDataService);
+    const dataManager = await dataSvc.getExtensionDataManager(SDK.getExtensionContext().id, token);
+    templatesSvc = new TemplateService(dataManager as unknown as DocumentStore);
+  } catch (e) {
+    templatesSvc = new TemplateService(new LocalDocumentStore());
+    templatesWarning = `Shared template storage is unavailable — templates are saved in this browser only (no sharing). Reason: ${describeError(e)}`;
+  }
+
   ReactDOM.render(
     <App
-      services={{ projects, backlog, query, workItems, fieldSvc, orchestrator, identity, templatesSvc, me }}
+      services={{ projects, backlog, query, workItems, fieldSvc, orchestrator, identity, templatesSvc, me, templatesWarning }}
     />,
     document.getElementById('root')
   );
@@ -365,7 +422,7 @@ start().catch((e) => {
   console.error('Work Items Export init failed:', e);
   const root = document.getElementById('root');
   if (root) {
-    root.textContent = `Failed to initialize Work Items Export: ${e instanceof Error ? e.message : String(e)}`;
+    root.textContent = `Failed to initialize Work Items Export: ${describeError(e)}`;
     root.className = 'error-box';
   }
 });
