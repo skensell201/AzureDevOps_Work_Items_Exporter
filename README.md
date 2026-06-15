@@ -32,6 +32,16 @@ npm install
 npm run package   # -> out/local.workitems-export-<version>.vsix
 ```
 
+## Troubleshooting
+
+- **"Failed to initialize … Error issuing session token: HostAuthorizationNotFound"** —
+  this happens on Azure DevOps Server when the extension is *updated in place*: the host
+  OAuth authorization isn't refreshed, so `getAccessToken()` fails. **Fix: fully uninstall
+  the extension and install the new `.vsix` fresh** (don't update over the old one). A
+  clean install re-creates the host authorization.
+- **Old UI after a new build** — each build emits a content-hashed bundle, so a version
+  bump + clean install always serves the latest code; no manual cache clearing needed.
+
 ## Known limitations (v1)
 
 - Preview is capped at 500 rows (the downloaded file is not).
