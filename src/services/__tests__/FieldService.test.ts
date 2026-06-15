@@ -30,10 +30,10 @@ describe('FieldService', () => {
     ]);
   });
 
-  it('default columns include common fields plus Sum of Effort/Original Estimate', () => {
+  it('default columns are common stored fields only (no rollup sums)', () => {
     const cols = FieldService.defaultColumns();
     expect(cols.some((c) => c.kind === 'field' && c.referenceName === 'System.Title')).toBe(true);
-    expect(cols.some((c) => c.kind === 'rollupSum' && c.field === 'Microsoft.VSTS.Scheduling.Effort')).toBe(true);
-    expect(cols.some((c) => c.kind === 'rollupSum' && c.field === 'Microsoft.VSTS.Scheduling.OriginalEstimate')).toBe(true);
+    expect(cols.some((c) => c.kind === 'field' && c.referenceName === 'System.State')).toBe(true);
+    expect(cols.some((c) => c.kind === 'rollupSum')).toBe(false);
   });
 });

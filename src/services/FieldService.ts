@@ -25,12 +25,8 @@ export class FieldService {
     return fields.filter((f) => NUMERIC.has(f.type));
   }
 
+  /** Default visible columns: common stored fields only. Rollup sums are opt-in. */
   static defaultColumns(): Column[] {
-    const fieldCols: Column[] = DEFAULT_FIELDS.map((f) => ({ kind: 'field', referenceName: f.ref, header: f.header }));
-    const rollups: Column[] = [
-      { kind: 'rollupSum', field: 'Microsoft.VSTS.Scheduling.Effort', header: 'Sum of Effort' },
-      { kind: 'rollupSum', field: 'Microsoft.VSTS.Scheduling.OriginalEstimate', header: 'Sum of Original Estimate' },
-    ];
-    return [...fieldCols, ...rollups];
+    return DEFAULT_FIELDS.map((f) => ({ kind: 'field', referenceName: f.ref, header: f.header }));
   }
 }

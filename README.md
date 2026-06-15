@@ -8,7 +8,7 @@ backlog level or a saved query to **CSV** or **Excel**, with a configurable colu
 - Source: a team **backlog level** (Epics / Features / Stories) or an existing **saved query** (My/Shared).
 - Pick any process field as a column (including custom fields), with search.
 - Computed/online columns, not stored on the work item:
-  - **Sum of `<field>`** rolled up over the descendant subtree, optionally **scoped to a work item type** (e.g. "Sum of Task Original Estimate", matching the native rollup columns). Default: Sum of Effort, Sum of Original Estimate (any type).
+  - **Sum of `<field>`** rolled up over the descendant subtree, optionally **scoped to a work item type** (e.g. "Sum of Task Original Estimate", matching the native rollup columns). Rollup sums are opt-in — add the ones you need.
   - **Count of children** (all / closed).
   - **Parent**, **hierarchy path**, and **level**.
 - Preview the table (first 500 rows); the file contains all rows.
