@@ -3,16 +3,6 @@ import { Column, FieldDef } from '../models/types';
 
 const NUMERIC = new Set(['integer', 'double']);
 
-const DEFAULT_FIELDS: { ref: string; header: string }[] = [
-  { ref: 'System.Id', header: 'ID' },
-  { ref: 'System.WorkItemType', header: 'Work Item Type' },
-  { ref: 'System.Title', header: 'Title' },
-  { ref: 'System.State', header: 'State' },
-  { ref: 'System.AssignedTo', header: 'Assigned To' },
-  { ref: 'Microsoft.VSTS.Scheduling.StoryPoints', header: 'Story Points' },
-  { ref: 'System.IterationPath', header: 'Iteration Path' },
-];
-
 export class FieldService {
   constructor(private api: ApiClient) {}
 
@@ -25,8 +15,18 @@ export class FieldService {
     return fields.filter((f) => NUMERIC.has(f.type));
   }
 
-  /** Default visible columns: common stored fields only. Rollup sums are opt-in. */
+  /** Default visible columns, in display order. */
   static defaultColumns(): Column[] {
-    return DEFAULT_FIELDS.map((f) => ({ kind: 'field', referenceName: f.ref, header: f.header }));
+    return [
+      { kind: 'field', referenceName: 'System.Id', header: 'ID' },
+      { kind: 'field', referenceName: 'System.WorkItemType', header: 'Work Item Type' },
+      { kind: 'field', referenceName: 'System.Title', header: 'Title' },
+      { kind: 'field', referenceName: 'System.State', header: 'State' },
+      { kind: 'field', referenceName: 'Microsoft.VSTS.Common.ValueArea', header: 'Value Area' },
+      { kind: 'field', referenceName: 'System.IterationPath', header: 'Iteration Path' },
+      { kind: 'field', referenceName: 'System.Tags', header: 'Tags' },
+      { kind: 'rollupSum', field: 'Microsoft.VSTS.Scheduling.OriginalEstimate', ofType: 'Task', header: 'Sum of Task Original Estimate' },
+      { kind: 'rollupSum', field: 'Microsoft.VSTS.Scheduling.CompletedWork', ofType: 'Task', header: 'Sum of Task Completed Work' },
+    ];
   }
 }

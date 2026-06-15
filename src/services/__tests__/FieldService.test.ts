@@ -30,10 +30,20 @@ describe('FieldService', () => {
     ]);
   });
 
-  it('default columns are common stored fields only (no rollup sums)', () => {
+  it('default columns are the configured set in order, incl. Task-scoped sums', () => {
     const cols = FieldService.defaultColumns();
-    expect(cols.some((c) => c.kind === 'field' && c.referenceName === 'System.Title')).toBe(true);
-    expect(cols.some((c) => c.kind === 'field' && c.referenceName === 'System.State')).toBe(true);
-    expect(cols.some((c) => c.kind === 'rollupSum')).toBe(false);
+    expect(cols.map((c) => c.header)).toEqual([
+      'ID',
+      'Work Item Type',
+      'Title',
+      'State',
+      'Value Area',
+      'Iteration Path',
+      'Tags',
+      'Sum of Task Original Estimate',
+      'Sum of Task Completed Work',
+    ]);
+    const sums = cols.filter((c) => c.kind === 'rollupSum') as { ofType?: string }[];
+    expect(sums.every((c) => c.ofType === 'Task')).toBe(true);
   });
 });
