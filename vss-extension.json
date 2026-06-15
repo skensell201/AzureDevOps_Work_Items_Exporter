@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "workitems-export",
   "publisher": "local",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "name": "Work Items Export",
   "description": "Download a team backlog level or a saved query to CSV/Excel with configurable columns, including rollup sums and hierarchy.",
   "categories": ["Boards"],

@@ -19,21 +19,22 @@ describe('WorkItemService', () => {
     expect((body as { query: string }).query).toContain('[Source].[System.Id] IN (1)');
   });
 
-  it('batch-fetches fields in chunks of 200 and merges into a map', async () => {
+  it('batch-fetches fields via GET workitems in chunks of 100 and merges into a map', async () => {
     const ids = Array.from({ length: 250 }, (_, i) => i + 1);
-    const post = jest.fn().mockImplementation((_url: string, body: { ids: number[] }) =>
-      Promise.resolve({ value: body.ids.map((id) => ({ id, fields: { 'System.Id': id } })) })
-    );
-    const api: ApiClient = { get: jest.fn(), post };
+    const get = jest.fn().mockImplementation((url: string) => {
+      const chunkIds = url.match(/ids=([^&]+)/)![1].split(',').map(Number);
+      return Promise.resolve({ value: chunkIds.map((id) => ({ id, fields: { 'System.Id': id } })) });
+    });
+    const api: ApiClient = { get, post: jest.fn() };
     const svc = new WorkItemService(api);
     const map = await svc.getFieldsBatch('Datagile', ids, ['System.Id']);
     expect(map.size).toBe(250);
     expect(map.get(1)).toEqual({ 'System.Id': 1 });
-    expect(post).toHaveBeenCalledTimes(2); // 200 + 50
-    expect(post).toHaveBeenCalledWith(
-      '/Datagile/_apis/wit/workitemsbatch?api-version=6.0',
-      expect.objectContaining({ fields: ['System.Id'] })
-    );
+    expect(get).toHaveBeenCalledTimes(3); // 100 + 100 + 50
+    const firstUrl = get.mock.calls[0][0] as string;
+    expect(firstUrl).toContain('/Datagile/_apis/wit/workitems?ids=');
+    expect(firstUrl).toContain('fields=System.Id');
+    expect(firstUrl).toContain('errorPolicy=omit');
   });
 
   it('returns empty map for no ids without calling the API', async () => {
@@ -41,6 +42,6 @@ describe('WorkItemService', () => {
     const svc = new WorkItemService(api);
     const map = await svc.getFieldsBatch('Datagile', [], ['System.Id']);
     expect(map.size).toBe(0);
-    expect(api.post).not.toHaveBeenCalled();
+    expect(api.get).not.toHaveBeenCalled();
   });
 });

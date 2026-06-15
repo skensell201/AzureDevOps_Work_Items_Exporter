@@ -3,7 +3,8 @@ import { TreeRelations, WiqlResult } from '../models/types';
 import { parseRelations } from './parseRelations';
 import { runBatched } from '../utils/batch';
 
-const CHUNK = 200;
+// Smaller chunk keeps the GET workitems query string under on-prem IIS URL limits.
+const CHUNK = 100;
 
 export class WorkItemService {
   constructor(private api: ApiClient) {}
@@ -24,8 +25,9 @@ export class WorkItemService {
     return parseRelations(res.workItemRelations ?? []);
   }
 
-  /** Fetches fields for the given ids in chunks of 200; merges into id -> fields.
-   *  Project-scoped: the collection-level workitemsbatch route 404s on some on-prem servers. */
+  /** Fetches fields for the given ids in chunks; merges into id -> fields.
+   *  Uses GET _apis/wit/workitems (universally supported; some on-prem builds 404 on the
+   *  POST workitemsbatch route). errorPolicy=omit skips ids the user cannot read. */
   async getFieldsBatch(
     project: string,
     ids: number[],
@@ -33,12 +35,13 @@ export class WorkItemService {
   ): Promise<Map<number, Record<string, unknown>>> {
     const result = new Map<number, Record<string, unknown>>();
     if (ids.length === 0) return result;
+    const fieldsParam = fields.join(',');
     const chunks: number[][] = [];
     for (let i = 0; i < ids.length; i += CHUNK) chunks.push(ids.slice(i, i + CHUNK));
     const responses = await runBatched(chunks, (chunk) =>
-      this.api.post<{ value: { id: number; fields: Record<string, unknown> }[] }>(
-        `/${encodeURIComponent(project)}/_apis/wit/workitemsbatch?api-version=6.0`,
-        { ids: chunk, fields }
+      this.api.get<{ value: { id: number; fields: Record<string, unknown> }[] }>(
+        `/${encodeURIComponent(project)}/_apis/wit/workitems?ids=${chunk.join(',')}` +
+          `&fields=${fieldsParam}&errorPolicy=omit&api-version=6.0`
       )
     );
     for (const res of responses) for (const wi of res.value) result.set(wi.id, wi.fields);
