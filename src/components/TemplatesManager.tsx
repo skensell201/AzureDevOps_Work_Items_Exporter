@@ -32,7 +32,13 @@ export function TemplatesManager(props: Props): JSX.Element {
     <div className="tm-overlay" role="dialog" aria-label="Templates">
       <div className="tm-modal">
         <div className="tm-head">
-          <b>Templates ({props.templates.length})</b>
+          <b>
+            Templates (
+            {filtered.length === props.templates.length
+              ? props.templates.length
+              : `${filtered.length} of ${props.templates.length}`}
+            )
+          </b>
           <button onClick={props.onClose}>Close</button>
         </div>
         <div className="tm-filters">

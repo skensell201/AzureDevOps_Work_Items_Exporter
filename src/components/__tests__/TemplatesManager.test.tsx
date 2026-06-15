@@ -39,6 +39,12 @@ describe('TemplatesManager', () => {
     expect(queryByText('Beta')).toBeNull();
   });
 
+  it('shows "found of total" in the header while filtering', () => {
+    const { getByPlaceholderText, getByText } = render(<TemplatesManager {...base} />);
+    fireEvent.change(getByPlaceholderText('Search templates…'), { target: { value: 'alph' } });
+    expect(getByText('Templates (1 of 2)')).toBeTruthy();
+  });
+
   it('filters by type', () => {
     const { getByLabelText, queryByText } = render(<TemplatesManager {...base} />);
     fireEvent.change(getByLabelText('Type'), { target: { value: 'query' } });
