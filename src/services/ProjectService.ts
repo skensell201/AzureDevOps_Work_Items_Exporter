@@ -10,7 +10,9 @@ export class ProjectService {
   }
 
   async getTeams(projectId: string): Promise<NamedRef[]> {
-    const res = await this.api.get<{ value: NamedRef[] }>(`/_apis/projects/${projectId}/teams?api-version=6.0`);
+    const res = await this.api.get<{ value: NamedRef[] }>(
+      `/_apis/projects/${encodeURIComponent(projectId)}/teams?api-version=6.0`
+    );
     return res.value;
   }
 }

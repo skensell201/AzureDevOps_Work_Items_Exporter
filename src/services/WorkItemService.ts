@@ -10,11 +10,13 @@ export class WorkItemService {
 
   /** Recursive hierarchy expansion from the given root ids (their whole subtrees). */
   async getDescendants(project: string, rootIds: number[]): Promise<TreeRelations> {
-    if (rootIds.length === 0) return { ids: [], parentOf: new Map(), childrenOf: new Map(), roots: [] };
+    // Guard the WIQL id list: only integers are interpolated into the query string.
+    const safeIds = rootIds.filter((n) => Number.isInteger(n));
+    if (safeIds.length === 0) return { ids: [], parentOf: new Map(), childrenOf: new Map(), roots: [] };
     const query =
       `SELECT [System.Id] FROM workitemLinks ` +
       `WHERE ([System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward') ` +
-      `AND ([Source].[System.Id] IN (${rootIds.join(',')})) MODE (Recursive)`;
+      `AND ([Source].[System.Id] IN (${safeIds.join(',')})) MODE (Recursive)`;
     const res = await this.api.post<WiqlResult>(
       `/${encodeURIComponent(project)}/_apis/wit/wiql?api-version=6.0`,
       { query }

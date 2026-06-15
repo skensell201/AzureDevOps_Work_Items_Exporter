@@ -30,6 +30,8 @@ export class QueryService {
   }
 
   async runQuery(project: string, queryId: string): Promise<WiqlResult> {
-    return this.api.get<WiqlResult>(`/${encodeURIComponent(project)}/_apis/wit/wiql/${queryId}?api-version=6.0`);
+    return this.api.get<WiqlResult>(
+      `/${encodeURIComponent(project)}/_apis/wit/wiql/${encodeURIComponent(queryId)}?api-version=6.0`
+    );
   }
 }
