@@ -26,6 +26,15 @@ input, select, button, textarea {
   border-radius: 3px;
   padding: 3px 6px;
 }
+/* Uniform height so command-bar / filter-bar controls line up cleanly. */
+.command-bar input, .command-bar select, .command-bar button,
+.filter-bar input, .filter-bar select, .filter-bar button {
+  height: 28px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  margin: 0;
+}
+.command-bar label, .filter-field label { line-height: 28px; }
 button { cursor: pointer; background-color: var(--wie-surface-alt); }
 button:disabled { opacity: 0.5; cursor: default; }
 
@@ -80,6 +89,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 
 .template-save { display: flex; gap: 6px; }
 .template-save input { flex: 1; }
+.template-desc { width: 100%; box-sizing: border-box; margin-top: 6px; }
 .template-hint { font-size: 12px; color: var(--wie-text-muted); margin-top: 6px; }
 .tm-open { width: 100%; margin-top: 8px; }
 
@@ -100,6 +110,7 @@ button:disabled { opacity: 0.5; cursor: default; }
 .tm-badge { font-size: 11px; padding: 1px 6px; border-radius: 10px; background: rgba(var(--communication-foreground, 0, 120, 212), 0.15); color: var(--wie-accent); }
 .tm-badge.tm-query { background: rgba(var(--palette-neutral-20, 214, 214, 214), 0.5); color: var(--wie-text); }
 .tm-src { font-size: 12px; color: var(--wie-text-muted); }
+.tm-desc { font-size: 12px; color: var(--wie-text-muted); margin-top: 3px; font-style: italic; }
 .tm-owner { font-size: 11px; color: var(--wie-text-muted); margin-left: auto; }
 .tm-actions { display: flex; gap: 6px; margin-top: 6px; }
 .tm-empty { padding: 16px; color: var(--wie-text-muted); }

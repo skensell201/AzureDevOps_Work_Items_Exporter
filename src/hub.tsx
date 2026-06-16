@@ -186,11 +186,12 @@ function App({ services }: { services: Services }): JSX.Element {
     void fn();
   }
 
-  async function onSaveTemplate(name: string): Promise<void> {
+  async function onSaveTemplate(name: string, description: string): Promise<void> {
     if (!lastSource) return;
     const t: Template = {
       id: `${services.me.id}.${Date.now()}`,
       name,
+      ...(description ? { description } : {}),
       source: lastSource,
       columns,
       owner: services.me,
@@ -299,7 +300,7 @@ function App({ services }: { services: Services }): JSX.Element {
           <TemplatesPanel
             count={visible.length}
             canSave={canSave}
-            onSave={(name) => void onSaveTemplate(name)}
+            onSave={(name, description) => void onSaveTemplate(name, description)}
             onOpenManager={() => setManagerOpen(true)}
           />
         </Popover>

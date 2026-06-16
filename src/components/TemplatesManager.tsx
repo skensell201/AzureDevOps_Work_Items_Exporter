@@ -24,7 +24,11 @@ export function TemplatesManager(props: Props): JSX.Element {
     return props.templates.filter((t) => {
       if (type !== 'all' && t.source.kind !== type) return false;
       if (!q) return true;
-      return t.name.toLowerCase().includes(q) || t.source.label.toLowerCase().includes(q);
+      return (
+        t.name.toLowerCase().includes(q) ||
+        t.source.label.toLowerCase().includes(q) ||
+        (t.description ?? '').toLowerCase().includes(q)
+      );
     });
   }, [props.templates, text, type]);
 
@@ -64,6 +68,7 @@ export function TemplatesManager(props: Props): JSX.Element {
                   <span className="tm-src">{t.source.label}</span>
                   <span className="tm-owner">{owned ? 'you' : t.owner.displayName}</span>
                 </div>
+                {t.description && <div className="tm-desc">{t.description}</div>}
                 <div className="tm-actions">
                   <button onClick={() => props.onLoad(t)}>Load</button>
                   {owned && (

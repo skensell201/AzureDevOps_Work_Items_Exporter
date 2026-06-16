@@ -5,12 +5,21 @@ import { TemplatesPanel } from '../TemplatesPanel';
 const base = { count: 3, canSave: true, onSave: jest.fn(), onOpenManager: jest.fn() };
 
 describe('TemplatesPanel', () => {
-  it('saves a typed name', () => {
+  it('saves a typed name (empty description by default)', () => {
     const onSave = jest.fn();
     const { getByPlaceholderText, getByText } = render(<TemplatesPanel {...base} onSave={onSave} />);
     fireEvent.change(getByPlaceholderText('Template name…'), { target: { value: 'X' } });
     fireEvent.click(getByText('Save template'));
-    expect(onSave).toHaveBeenCalledWith('X');
+    expect(onSave).toHaveBeenCalledWith('X', '');
+  });
+
+  it('saves an optional description', () => {
+    const onSave = jest.fn();
+    const { getByPlaceholderText, getByText } = render(<TemplatesPanel {...base} onSave={onSave} />);
+    fireEvent.change(getByPlaceholderText('Template name…'), { target: { value: 'X' } });
+    fireEvent.change(getByPlaceholderText('Description (optional)…'), { target: { value: 'my notes' } });
+    fireEvent.click(getByText('Save template'));
+    expect(onSave).toHaveBeenCalledWith('X', 'my notes');
   });
 
   it('does not save a blank name', () => {

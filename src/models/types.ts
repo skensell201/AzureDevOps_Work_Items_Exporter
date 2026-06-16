@@ -93,6 +93,7 @@ export interface TemplateSource {
 export interface Template {
   id: string;
   name: string;
+  description?: string;
   source: TemplateSource;
   columns: Column[];
   owner: SharedUser;
