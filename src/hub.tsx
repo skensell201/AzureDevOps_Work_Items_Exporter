@@ -4,7 +4,7 @@ import * as SDK from 'azure-devops-extension-sdk';
 import { CommonServiceIds, ILocationService, IExtensionDataService } from 'azure-devops-extension-api';
 import React, { useEffect, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
-import { Column, FieldDef, NamedRef, QueryNode, Table, Template, TemplateSource, SharedUser } from './models/types';
+import { Column, FieldDef, NamedRef, QueryNode, Table, TreeTable, Template, TemplateSource, SharedUser } from './models/types';
 import { RestApiClient, ApiError } from './services/ApiClient';
 import { ProjectService } from './services/ProjectService';
 import { BacklogService } from './services/BacklogService';
@@ -12,7 +12,7 @@ import { QueryService } from './services/QueryService';
 import { WorkItemService } from './services/WorkItemService';
 import { StateService } from './services/StateService';
 import { FieldService } from './services/FieldService';
-import { ExportOrchestrator } from './services/ExportOrchestrator';
+import { ExportOrchestrator, BuildResult } from './services/ExportOrchestrator';
 import { IdentityService } from './services/IdentityService';
 import { TemplateService, visibleTemplates, DocumentStore } from './services/TemplateService';
 import { SourcePicker, Selection } from './components/SourcePicker';
@@ -25,6 +25,7 @@ import { TemplatesManager } from './components/TemplatesManager';
 import { FilterBar } from './components/FilterBar';
 import { Popover } from './components/Popover';
 import { applyFilters, EMPTY_FILTERS, Filters } from './services/filter';
+import { filterTree, flattenTree, levelCount } from './services/TreeBuilder';
 
 interface Services {
   projects: ProjectService;
@@ -40,7 +41,12 @@ interface Services {
   templatesWarning?: string;
 }
 
-const EMPTY_SELECTION: Selection = { tab: 'backlog', project: '', team: '', level: '', query: '' };
+const EMPTY_SELECTION: Selection = { tab: 'backlog', project: '', team: '', level: '', query: '', itemType: '' };
+
+/** Wraps a TreeTable's depth-first rows into a flat Table (for export + filter options). */
+function flattenTreeToTable(tree: TreeTable): Table {
+  return { columns: tree.columns, headers: tree.headers, rows: flattenTree(tree).rows };
+}
 
 function nameOf(refs: NamedRef[], id: string): string {
   return refs.find((r) => r.id === id)?.name ?? id;
@@ -64,7 +70,8 @@ function App({ services }: { services: Services }): JSX.Element {
   const [witTypes, setWitTypes] = useState<string[]>([]);
   const [fields, setFields] = useState<FieldDef[]>([]);
   const [columns, setColumns] = useState<Column[]>(FieldService.defaultColumns());
-  const [table, setTable] = useState<Table | null>(null);
+  const [result, setResult] = useState<BuildResult | null>(null);
+  const [exportScope, setExportScope] = useState<'tree' | 'level'>('tree');
   const [baseName, setBaseName] = useState('work-items');
   const [progress, setProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +87,16 @@ function App({ services }: { services: Services }): JSX.Element {
 
   const canSave = lastSource !== null;
   const visible = visibleTemplates(templates, services.me.id);
-  const filtered = useMemo(() => (table ? applyFilters(table, filters) : null), [table, filters]);
+
+  const viewTree = useMemo(() => (result ? filterTree(result.tree, filters) : null), [result, filters]);
+  const exportTable = useMemo<Table | null>(() => {
+    if (!result) return null;
+    if (exportScope === 'level') return applyFilters(result.levelTable, filters);
+    return viewTree ? flattenTreeToTable(viewTree) : null;
+  }, [result, viewTree, exportScope, filters]);
+  const filterOptionsTable = useMemo(() => (result ? flattenTreeToTable(result.tree) : null), [result]);
+  const shownLevel = viewTree ? levelCount(viewTree) : 0;
+  const totalLevel = result ? levelCount(result.tree) : 0;
 
   useEffect(() => {
     void (async () => {
@@ -135,18 +151,19 @@ function App({ services }: { services: Services }): JSX.Element {
     }
   }
 
-  async function run(name: string, fn: () => Promise<{ table: Table; warnings: string[] }>): Promise<void> {
+  async function run(name: string, fn: () => Promise<BuildResult>): Promise<void> {
     setError(null);
     setWarnings([]);
     setProgress('Loading…');
     try {
-      const { table: t, warnings: w } = await fn();
-      setTable(t);
-      setWarnings(w);
+      const r = await fn();
+      setResult(r);
+      setWarnings(r.warnings);
       setBaseName(name);
       setFilters(EMPTY_FILTERS);
+      setExportScope('tree');
     } catch (e) {
-      setTable(null);
+      setResult(null);
       if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
         setError('You do not have permission to read these work items.');
       } else {
@@ -159,14 +176,16 @@ function App({ services }: { services: Services }): JSX.Element {
 
   function loadBacklog(project: string, team: string, backlogId: string): void {
     const cols = columns;
+    const type = selection.itemType || undefined;
     const fn = (): Promise<void> =>
-      run(`backlog-${backlogId}`, () => services.orchestrator.buildBacklogTable(project, team, backlogId, cols));
+      run(`backlog-${backlogId}`, () => services.orchestrator.buildBacklogTable(project, team, backlogId, cols, type));
     setLastLoad(() => fn);
     setLastSource({
       kind: 'backlog',
       project,
       team,
       backlogId,
+      itemType: type,
       label: `${nameOf(projects, project)} / ${nameOf(teams, team)} / ${nameOf(levels, backlogId)}`,
     });
     void fn();
@@ -212,7 +231,8 @@ function App({ services }: { services: Services }): JSX.Element {
       setColumns(t.columns);
       setWitTypes(await services.projects.getWorkItemTypes(s.project));
       if (s.kind === 'backlog') {
-        setSelection({ tab: 'backlog', project: s.project, team: s.team ?? '', level: s.backlogId ?? '', query: '' });
+        const type = s.itemType ?? '';
+        setSelection({ tab: 'backlog', project: s.project, team: s.team ?? '', level: s.backlogId ?? '', query: '', itemType: type });
         const fetchedTeams = await services.projects.getTeams(s.project);
         setTeams(fetchedTeams);
         setQueryTree(await services.query.getQueryTree(s.project));
@@ -221,7 +241,7 @@ function App({ services }: { services: Services }): JSX.Element {
         const cols = t.columns;
         const fn = (): Promise<void> =>
           run(`backlog-${s.backlogId}`, () =>
-            services.orchestrator.buildBacklogTable(s.project, s.team ?? '', s.backlogId ?? '', cols)
+            services.orchestrator.buildBacklogTable(s.project, s.team ?? '', s.backlogId ?? '', cols, type || undefined)
           );
         setLastLoad(() => fn);
         setLastSource({
@@ -229,11 +249,12 @@ function App({ services }: { services: Services }): JSX.Element {
           project: s.project,
           team: s.team,
           backlogId: s.backlogId,
+          itemType: type || undefined,
           label: `${nameOf(projects, s.project)} / ${nameOf(fetchedTeams, s.team ?? '')} / ${nameOf(fetchedLevels, s.backlogId ?? '')}`,
         });
         void fn();
       } else {
-        setSelection({ tab: 'query', project: s.project, team: '', level: '', query: s.queryId ?? '' });
+        setSelection({ tab: 'query', project: s.project, team: '', level: '', query: s.queryId ?? '', itemType: '' });
         setTeams(await services.projects.getTeams(s.project));
         const fetchedTree = await services.query.getQueryTree(s.project);
         setQueryTree(fetchedTree);
@@ -282,6 +303,7 @@ function App({ services }: { services: Services }): JSX.Element {
           teams={teams}
           levels={levels}
           queryTree={queryTree}
+          types={witTypes}
           value={selection}
           onChange={handleSelectionChange}
           onProjectSelected={(p) => void onProjectSelected(p)}
@@ -292,7 +314,23 @@ function App({ services }: { services: Services }): JSX.Element {
         />
       </div>
       <div className="command-bar actions">
-        {filtered && <ExportMenu table={filtered} baseName={baseName} />}
+        {exportTable && <ExportMenu table={exportTable} baseName={baseName} />}
+        {result && (
+          <span className="scope-toggle">
+            <button
+              className={exportScope === 'tree' ? 'active' : ''}
+              onClick={() => setExportScope('tree')}
+            >
+              Visible tree
+            </button>
+            <button
+              className={exportScope === 'level' ? 'active' : ''}
+              onClick={() => setExportScope('level')}
+            >
+              Level only
+            </button>
+          </span>
+        )}
         <Popover label="Columns">
           <ColumnPicker fields={fields} value={columns} onChange={setColumns} types={witTypes} />
         </Popover>
@@ -310,16 +348,18 @@ function App({ services }: { services: Services }): JSX.Element {
           </button>
         )}
         <span className="spacer" />
-        {filtered && table && (
+        {result && (
           <span className="count">
-            {filtered.rows.length} of {table.rows.length}
+            {shownLevel} of {totalLevel}
           </span>
         )}
         <button className={showFilter ? 'active' : ''} onClick={() => setShowFilter((s) => !s)}>
           &#9906; Filter
         </button>
       </div>
-      {showFilter && table && <FilterBar table={table} filters={filters} onChange={setFilters} />}
+      {showFilter && filterOptionsTable && (
+        <FilterBar table={filterOptionsTable} filters={filters} onChange={setFilters} />
+      )}
       <ProgressBar step={progress} />
       {error && <div className="error-box">{error}</div>}
       {services.templatesWarning && (
@@ -334,7 +374,7 @@ function App({ services }: { services: Services }): JSX.Element {
           ))}
         </div>
       )}
-      {filtered && <DataGrid table={filtered} maxRows={500} />}
+      {viewTree && <DataGrid tree={viewTree} maxRows={500} />}
       {managerOpen && (
         <TemplatesManager
           templates={visible}

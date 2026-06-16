@@ -37,6 +37,39 @@ describe('WorkItemService', () => {
     expect(firstUrl).toContain('errorPolicy=omit');
   });
 
+  it('climbs System.Parent level by level and stops at the top', async () => {
+    // 3 → 2 → 1 → (no parent). Inputs: [3].
+    const parents = new Map<number, number>([[3, 2], [2, 1]]);
+    const get = jest.fn().mockImplementation((url: string) => {
+      const chunkIds = url.match(/ids=([^&]+)/)![1].split(',').map(Number);
+      return Promise.resolve({
+        value: chunkIds.map((id) => {
+          const p = parents.get(id);
+          return { id, fields: p ? { 'System.Parent': p } : {} };
+        }),
+      });
+    });
+    const api: ApiClient = { get, post: jest.fn() };
+    const svc = new WorkItemService(api);
+    const ancestors = await svc.getAncestors('Contoso', [3]);
+    expect(ancestors).toEqual([2, 1]); // excludes the input, climbs to the root
+    expect(get).toHaveBeenCalledTimes(3); // frontier [3] → [2] → [1] → [] stops
+    expect((get.mock.calls[0][0] as string)).toContain('fields=System.Parent');
+  });
+
+  it('respects the 12-level cap on a long chain', async () => {
+    // Each id points to id+1 forever; cap must stop the climb.
+    const get = jest.fn().mockImplementation((url: string) => {
+      const chunkIds = url.match(/ids=([^&]+)/)![1].split(',').map(Number);
+      return Promise.resolve({ value: chunkIds.map((id) => ({ id, fields: { 'System.Parent': id + 1 } })) });
+    });
+    const api: ApiClient = { get, post: jest.fn() };
+    const svc = new WorkItemService(api);
+    const ancestors = await svc.getAncestors('Contoso', [1]);
+    expect(get).toHaveBeenCalledTimes(12);
+    expect(ancestors).toHaveLength(12); // ids 2..13
+  });
+
   it('returns empty map for no ids without calling the API', async () => {
     const api: ApiClient = { get: jest.fn(), post: jest.fn() };
     const svc = new WorkItemService(api);

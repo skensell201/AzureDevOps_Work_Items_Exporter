@@ -82,6 +82,12 @@ button:disabled { opacity: 0.5; cursor: default; }
 .data-grid thead th { position: sticky; top: 0; background: var(--wie-surface-alt); }
 .grid-note { padding: 6px 8px; background: #fff4ce; color: #4a3b00; font-size: 12px; }
 
+.tree-toggle { width: 16px; border: none; background: transparent; cursor: pointer; padding: 0 2px; color: var(--wie-text-muted); }
+.tree-toggle.placeholder { visibility: hidden; }
+.data-grid td.title-cell { white-space: nowrap; }
+.scope-toggle { display: inline-flex; gap: 0; }
+.scope-toggle button.active { border-color: var(--wie-accent); font-weight: 600; }
+
 /* Status boxes keep fixed light backgrounds, so pin dark text for contrast in any theme. */
 .error-box { background: #fde7e9; color: #6e0811; border: 1px solid #f1707b; padding: 10px; border-radius: 6px; margin: 8px 0; }
 .warnings { background: #fff4ce; color: #4a3b00; padding: 8px; border-radius: 6px; margin: 8px 0; font-size: 13px; }
