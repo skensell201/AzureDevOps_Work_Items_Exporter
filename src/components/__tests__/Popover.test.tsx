@@ -11,4 +11,17 @@ describe('Popover', () => {
     fireEvent.click(getByText('Columns'));
     expect(queryByText('PANEL')).toBeNull();
   });
+
+  it('closes when clicking outside', () => {
+    const { getByText, queryByText } = render(
+      <div>
+        <Popover label="Columns"><div>PANEL</div></Popover>
+        <button>Outside</button>
+      </div>
+    );
+    fireEvent.click(getByText('Columns'));
+    expect(queryByText('PANEL')).toBeTruthy();
+    fireEvent.mouseDown(getByText('Outside'));
+    expect(queryByText('PANEL')).toBeNull();
+  });
 });
