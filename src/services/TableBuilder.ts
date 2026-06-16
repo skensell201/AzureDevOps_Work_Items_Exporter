@@ -29,6 +29,15 @@ function cell(col: Column, id: number, fields: Map<number, Record<string, unknow
   }
 }
 
+export function buildRow(
+  columns: Column[],
+  id: number,
+  fields: Map<number, Record<string, unknown>>,
+  rollups: Rollups
+): CellValue[] {
+  return columns.map((c) => cell(c, id, fields, rollups));
+}
+
 interface Args {
   rowIds: number[];
   columns: Column[];
@@ -41,6 +50,6 @@ export function buildTable({ rowIds, columns, fields, rollups }: Args): Table {
   return {
     columns,
     headers: columns.map((c) => c.header),
-    rows: rowIds.map((id) => columns.map((c) => cell(c, id, fields, rollups))),
+    rows: rowIds.map((id) => buildRow(columns, id, fields, rollups)),
   };
 }
