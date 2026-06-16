@@ -39,6 +39,16 @@ describe('TemplateService', () => {
     expect(setDocument).toHaveBeenCalledWith('templates', t, { scopeType: 'Default' });
     expect(deleteDocument).toHaveBeenCalledWith('templates', 'a', { scopeType: 'Default' });
   });
+
+  it('strips __etag before saving so writes overwrite (avoids 1660003 conflicts)', async () => {
+    const setDocument = jest.fn().mockImplementation((_c, d) => Promise.resolve(d));
+    const svc = new TemplateService({ getDocuments: jest.fn(), setDocument, deleteDocument: jest.fn() });
+    const stale = { ...tpl('a', 'u1'), __etag: '7' } as unknown as Template;
+    await svc.save(stale);
+    const sentDoc = setDocument.mock.calls[0][1];
+    expect('__etag' in sentDoc).toBe(false);
+    expect(sentDoc.id).toBe('a');
+  });
 });
 
 describe('visibleTemplates', () => {

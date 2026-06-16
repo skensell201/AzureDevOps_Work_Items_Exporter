@@ -22,7 +22,12 @@ export class TemplateService {
   }
 
   save(t: Template): Promise<Template> {
-    return this.store.setDocument(COLLECTION, t, SCOPE);
+    // Drop the optimistic-concurrency tag so a save overwrites (last-write-wins),
+    // avoiding "document version does not match" (1660003) when sharing/updating a
+    // copy that is one version behind the server.
+    const clean = { ...t } as Template & { __etag?: unknown };
+    delete clean.__etag;
+    return this.store.setDocument(COLLECTION, clean, SCOPE);
   }
 
   remove(id: string): Promise<void> {
