@@ -60,6 +60,21 @@ export interface Table {
   rows: CellValue[][];
 }
 
+export interface TreeNode {
+  id: number;
+  cells: CellValue[]; // aligned to columns
+  childIds: number[];
+  isLevel: boolean; // a selected backlog-level item
+}
+
+export interface TreeTable {
+  columns: Column[];
+  headers: string[];
+  titleIndex: number; // index of the 'Title' column for indentation, -1 if absent
+  nodes: Map<number, TreeNode>;
+  roots: number[];
+}
+
 /** A node in the saved-query tree. */
 export interface QueryNode {
   id: string;
@@ -86,6 +101,7 @@ export interface TemplateSource {
   team?: string;
   backlogId?: string;
   queryId?: string;
+  itemType?: string;
   /** Human-readable description for the list, e.g. "Contoso / Ops / Stories". */
   label: string;
 }
