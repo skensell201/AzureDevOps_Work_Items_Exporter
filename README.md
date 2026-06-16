@@ -11,6 +11,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/skensell201/AzureDevOps_Work_Items_Exporter/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/skensell201/AzureDevOps_Work_Items_Exporter/actions/workflows/ci.yml/badge.svg"></a>
   <img alt="platform" src="https://img.shields.io/badge/Azure%20DevOps%20Server-2022-0078d4">
   <img alt="type" src="https://img.shields.io/badge/extension-VSIX-blue">
   <img alt="stack" src="https://img.shields.io/badge/TypeScript%20·%20React%2016-informational">
