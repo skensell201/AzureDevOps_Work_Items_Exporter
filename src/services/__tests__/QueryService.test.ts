@@ -18,10 +18,10 @@ describe('QueryService', () => {
       post: jest.fn(),
     };
     const svc = new QueryService(api);
-    const tree = await svc.getQueryTree('Datagile');
+    const tree = await svc.getQueryTree('Contoso');
     expect(tree[0].isFolder).toBe(true);
     expect(tree[0].children[0].name).toBe('Open Bugs');
-    expect(api.get).toHaveBeenCalledWith('/Datagile/_apis/wit/queries?$depth=2&api-version=6.0');
+    expect(api.get).toHaveBeenCalledWith('/Contoso/_apis/wit/queries?$depth=2&api-version=6.0');
   });
 
   it('runs a query by id and returns the WIQL result', async () => {
@@ -30,9 +30,9 @@ describe('QueryService', () => {
       post: jest.fn(),
     };
     const svc = new QueryService(api);
-    const res = await svc.runQuery('Datagile', 'q1');
+    const res = await svc.runQuery('Contoso', 'q1');
     expect(res.workItems).toEqual([{ id: 5 }]);
-    expect(api.get).toHaveBeenCalledWith('/Datagile/_apis/wit/wiql/q1?api-version=6.0');
+    expect(api.get).toHaveBeenCalledWith('/Contoso/_apis/wit/wiql/q1?api-version=6.0');
   });
 
   it('recursively expands folders deeper than the depth-2 API limit', async () => {
@@ -57,8 +57,8 @@ describe('QueryService', () => {
     });
     const api = { get, post: jest.fn() };
     const svc = new QueryService(api);
-    const tree = await svc.getQueryTree('Datagile');
+    const tree = await svc.getQueryTree('Contoso');
     expect(tree[0].children.map((c) => c.name)).toEqual(['Deep Query']);
-    expect(get).toHaveBeenCalledWith('/Datagile/_apis/wit/queries/shared?$depth=2&api-version=6.0');
+    expect(get).toHaveBeenCalledWith('/Contoso/_apis/wit/queries/shared?$depth=2&api-version=6.0');
   });
 });

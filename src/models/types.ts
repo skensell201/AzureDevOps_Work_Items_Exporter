@@ -86,7 +86,7 @@ export interface TemplateSource {
   team?: string;
   backlogId?: string;
   queryId?: string;
-  /** Human-readable description for the list, e.g. "Datagile / Ops / Stories". */
+  /** Human-readable description for the list, e.g. "Contoso / Ops / Stories". */
   label: string;
 }
 

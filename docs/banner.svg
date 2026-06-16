@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a3d62"/>
+      <stop offset="1" stop-color="#06283d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="300" fill="url(#bg)"/>
+
+  <!-- icon: table + download arrow -->
+  <g transform="translate(70,84)">
+    <rect x="0" y="0" width="132" height="96" rx="10" fill="#ffffff"/>
+    <rect x="0" y="0" width="132" height="22" rx="10" fill="#12cbc4"/>
+    <line x1="44" y1="22" x2="44" y2="96" stroke="#0a3d62" stroke-width="4"/>
+    <line x1="88" y1="22" x2="88" y2="96" stroke="#0a3d62" stroke-width="4"/>
+    <line x1="0" y1="46" x2="132" y2="46" stroke="#cfe3ee" stroke-width="4"/>
+    <line x1="0" y1="70" x2="132" y2="70" stroke="#cfe3ee" stroke-width="4"/>
+    <circle cx="110" cy="100" r="40" fill="#12cbc4"/>
+    <path d="M110 78 L110 118 M110 118 L95 103 M110 118 L125 103" stroke="#0a3d62" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <text x="270" y="140" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="58" font-weight="700" fill="#ffffff">Work Items Export</text>
+  <text x="272" y="186" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="26" fill="#9fc6dd">Azure DevOps Server 2022 · backlog &amp; query → CSV / Excel</text>
+  <text x="272" y="224" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="20" fill="#6fa8c7">configurable columns · rollup sums · filters · shareable templates</text>
+</svg>

@@ -48,7 +48,7 @@ describe('ExportOrchestrator.buildBacklogTable', () => {
       { kind: 'field', referenceName: 'System.Title', header: 'Title' },
       { kind: 'rollupSum', field: 'Microsoft.VSTS.Scheduling.Effort', header: 'Sum of Effort' },
     ];
-    const { table } = await orch.buildBacklogTable('Datagile', 'Ops', 'Microsoft.RequirementCategory', columns);
+    const { table } = await orch.buildBacklogTable('Contoso', 'Ops', 'Microsoft.RequirementCategory', columns);
     expect(table.rows).toHaveLength(1); // row set = backlog ids only
     expect(table.headers).toEqual(['Title', 'Sum of Effort']);
     expect(table.rows[0]).toEqual(['Epic', 4]); // subtree effort sum = 4
@@ -73,8 +73,8 @@ describe('ExportOrchestrator.buildBacklogTable', () => {
     const states = fakeStates(new Set(['Завершено']));
     const orch = new ExportOrchestrator({ backlog, workItems, states } as never);
     const columns: Column[] = [{ kind: 'childCount', variant: 'closed', header: 'Closed children' }];
-    const { table } = await orch.buildBacklogTable('Datagile', 'Ops', 'X', columns);
-    expect(states.getCompletedStates).toHaveBeenCalledWith('Datagile', expect.arrayContaining(['Epic', 'Task']));
+    const { table } = await orch.buildBacklogTable('Contoso', 'Ops', 'X', columns);
+    expect(states.getCompletedStates).toHaveBeenCalledWith('Contoso', expect.arrayContaining(['Epic', 'Task']));
     expect(table.rows[0]).toEqual([1]); // the localized-closed descendant is counted
   });
 
@@ -113,10 +113,10 @@ describe('ExportOrchestrator.buildQueryTable', () => {
       { kind: 'field', referenceName: 'System.Title', header: 'Title' },
       { kind: 'rollupSum', field: 'Microsoft.VSTS.Scheduling.Effort', header: 'Sum of Effort' },
     ];
-    const { table } = await orch.buildQueryTable('Datagile', 'q1', columns);
+    const { table } = await orch.buildQueryTable('Contoso', 'q1', columns);
     expect(table.rows).toHaveLength(1);
     expect(table.rows[0]).toEqual(['Story', 2]);
-    expect(query.runQuery).toHaveBeenCalledWith('Datagile', 'q1');
+    expect(query.runQuery).toHaveBeenCalledWith('Contoso', 'q1');
   });
 
   it('uses the query relations directly for a tree query (no extra descendant fetch)', async () => {
@@ -139,7 +139,7 @@ describe('ExportOrchestrator.buildQueryTable', () => {
       ),
     };
     const orch = new ExportOrchestrator({ query, workItems, states: fakeStates() } as never);
-    const { table } = await orch.buildQueryTable('Datagile', 'q2', [{ kind: 'field', referenceName: 'System.Title', header: 'Title' }]);
+    const { table } = await orch.buildQueryTable('Contoso', 'q2', [{ kind: 'field', referenceName: 'System.Title', header: 'Title' }]);
     expect(workItems.getDescendants).not.toHaveBeenCalled(); // tree query already has hierarchy
     expect(table.rows.map((r) => r[0])).toEqual(['Epic']); // rows = roots of the tree
   });

@@ -4,11 +4,11 @@ import { ApiClient } from '../ApiClient';
 describe('ProjectService', () => {
   it('lists projects', async () => {
     const api: ApiClient = {
-      get: jest.fn().mockResolvedValue({ value: [{ id: 'p1', name: 'Datagile' }] }),
+      get: jest.fn().mockResolvedValue({ value: [{ id: 'p1', name: 'Contoso' }] }),
       post: jest.fn(),
     };
     const svc = new ProjectService(api);
-    expect(await svc.getProjects()).toEqual([{ id: 'p1', name: 'Datagile' }]);
+    expect(await svc.getProjects()).toEqual([{ id: 'p1', name: 'Contoso' }]);
     expect(api.get).toHaveBeenCalledWith('/_apis/projects?$top=1000&api-version=6.0');
   });
 
@@ -28,7 +28,7 @@ describe('ProjectService', () => {
       post: jest.fn(),
     };
     const svc = new ProjectService(api);
-    expect(await svc.getWorkItemTypes('Datagile')).toEqual(['Epic', 'Task']);
-    expect(api.get).toHaveBeenCalledWith('/Datagile/_apis/wit/workitemtypes?api-version=6.0');
+    expect(await svc.getWorkItemTypes('Contoso')).toEqual(['Epic', 'Task']);
+    expect(api.get).toHaveBeenCalledWith('/Contoso/_apis/wit/workitemtypes?api-version=6.0');
   });
 });

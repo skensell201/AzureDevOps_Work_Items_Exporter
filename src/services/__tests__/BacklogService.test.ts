@@ -13,9 +13,9 @@ describe('BacklogService', () => {
       post: jest.fn(),
     };
     const svc = new BacklogService(api);
-    const levels = await svc.getBacklogLevels('Datagile', 'Ops Team');
+    const levels = await svc.getBacklogLevels('Contoso', 'Ops Team');
     expect(levels.map((l) => l.name)).toEqual(['Epics', 'Stories']);
-    expect(api.get).toHaveBeenCalledWith('/Datagile/Ops%20Team/_apis/work/backlogs?api-version=6.0-preview.1');
+    expect(api.get).toHaveBeenCalledWith('/Contoso/Ops%20Team/_apis/work/backlogs?api-version=6.0-preview.1');
   });
 
   it('returns work item ids at a backlog level', async () => {
@@ -24,10 +24,10 @@ describe('BacklogService', () => {
       post: jest.fn(),
     };
     const svc = new BacklogService(api);
-    const ids = await svc.getBacklogWorkItemIds('Datagile', 'Ops Team', 'Microsoft.RequirementCategory');
+    const ids = await svc.getBacklogWorkItemIds('Contoso', 'Ops Team', 'Microsoft.RequirementCategory');
     expect(ids).toEqual([10, 11]);
     expect(api.get).toHaveBeenCalledWith(
-      '/Datagile/Ops%20Team/_apis/work/backlogs/Microsoft.RequirementCategory/workItems?api-version=6.0-preview.1'
+      '/Contoso/Ops%20Team/_apis/work/backlogs/Microsoft.RequirementCategory/workItems?api-version=6.0-preview.1'
     );
   });
 });

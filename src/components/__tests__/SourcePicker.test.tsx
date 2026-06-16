@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react';
 import { SourcePicker, Selection } from '../SourcePicker';
 import { NamedRef, QueryNode } from '../../models/types';
 
-const projects: NamedRef[] = [{ id: 'p1', name: 'Datagile' }];
+const projects: NamedRef[] = [{ id: 'p1', name: 'Contoso' }];
 const teams: NamedRef[] = [{ id: 't1', name: 'Ops' }];
 const levels: NamedRef[] = [{ id: 'Microsoft.RequirementCategory', name: 'Stories' }];
 const queryTree: QueryNode[] = [

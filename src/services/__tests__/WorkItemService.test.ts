@@ -11,10 +11,10 @@ describe('WorkItemService', () => {
     });
     const api: ApiClient = { get: jest.fn(), post };
     const svc = new WorkItemService(api);
-    const tree = await svc.getDescendants('Datagile', [1]);
+    const tree = await svc.getDescendants('Contoso', [1]);
     expect(tree.childrenOf.get(1)).toEqual([2]);
     const [url, body] = post.mock.calls[0];
-    expect(url).toBe('/Datagile/_apis/wit/wiql?api-version=6.0');
+    expect(url).toBe('/Contoso/_apis/wit/wiql?api-version=6.0');
     expect((body as { query: string }).query).toContain('MODE (Recursive)');
     expect((body as { query: string }).query).toContain('[Source].[System.Id] IN (1)');
   });
@@ -27,12 +27,12 @@ describe('WorkItemService', () => {
     });
     const api: ApiClient = { get, post: jest.fn() };
     const svc = new WorkItemService(api);
-    const map = await svc.getFieldsBatch('Datagile', ids, ['System.Id']);
+    const map = await svc.getFieldsBatch('Contoso', ids, ['System.Id']);
     expect(map.size).toBe(250);
     expect(map.get(1)).toEqual({ 'System.Id': 1 });
     expect(get).toHaveBeenCalledTimes(3); // 100 + 100 + 50
     const firstUrl = get.mock.calls[0][0] as string;
-    expect(firstUrl).toContain('/Datagile/_apis/wit/workitems?ids=');
+    expect(firstUrl).toContain('/Contoso/_apis/wit/workitems?ids=');
     expect(firstUrl).toContain('fields=System.Id');
     expect(firstUrl).toContain('errorPolicy=omit');
   });
@@ -40,7 +40,7 @@ describe('WorkItemService', () => {
   it('returns empty map for no ids without calling the API', async () => {
     const api: ApiClient = { get: jest.fn(), post: jest.fn() };
     const svc = new WorkItemService(api);
-    const map = await svc.getFieldsBatch('Datagile', [], ['System.Id']);
+    const map = await svc.getFieldsBatch('Contoso', [], ['System.Id']);
     expect(map.size).toBe(0);
     expect(api.get).not.toHaveBeenCalled();
   });
