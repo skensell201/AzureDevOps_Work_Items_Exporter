@@ -37,6 +37,14 @@ each user only ever sees the projects/work items they already have access to.
 
 - **Source** — a team **backlog level** (Epics / Features / Stories) or an existing
   **saved query** (My / Shared). The query list is refreshable and expands deep folders.
+- **Native tree view** — the backlog renders as an expandable hierarchy (Epic → Feature →
+  User Story → Tasks) with ▸/▾ chevrons and indentation, just like the native backlog.
+- **Exact match** — the backlog-level set comes from the same authoritative endpoint the
+  native backlog uses, so the counts agree (5 User Stories → 5 rows). A **Work Item Type**
+  selector restricts the level to one type (e.g. only User Story, dropping Use Case /
+  Requirement that share the requirement category).
+- **Export scope** — toggle between exporting the **visible tree** (whole hierarchy) or
+  **level only** (just the selected backlog-level items).
 - **Columns** — pick any process field (including custom fields), with search. Plus
   computed/online columns that aren't stored on the work item:
   - **Sum of `<field>`** rolled up over the descendant subtree, optionally **scoped to a
