@@ -130,6 +130,11 @@ expands the descendant tree → fields are fetched via `GET _apis/wit/workitems`
   members (add each person individually).
 - Tag filter matches a whole tag token (use free-text search for partial matches).
 
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for setup, conventions
+(TDD, theme-aware styling, read-only scopes), and the PR/release process.
+
 ## License
 
 [MIT](LICENSE)
