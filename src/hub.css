@@ -29,16 +29,33 @@ input, select, button, textarea {
 button { cursor: pointer; background-color: var(--wie-surface-alt); }
 button:disabled { opacity: 0.5; cursor: default; }
 
-.layout { display: flex; gap: 16px; align-items: flex-start; }
-.sidebar { flex: 0 0 320px; }
-.main { flex: 1 1 auto; min-width: 0; }
+.command-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--wie-border-subtle); }
+.command-bar.actions { gap: 6px; }
+.command-bar .spacer { flex: 1; }
+.command-bar .count { font-size: 12px; color: var(--wie-text-muted); }
 
-.source-picker, .column-picker, .templates-panel {
+.column-picker, .templates-panel {
   border: 1px solid var(--wie-border); border-radius: 6px; padding: 12px; margin-bottom: 12px;
   background: var(--wie-surface);
 }
-.source-picker label, .column-picker label { display: block; margin: 6px 0 2px; font-size: 12px; }
-.source-picker select, .source-picker input, .column-picker > input { width: 100%; box-sizing: border-box; }
+.column-picker label { display: block; margin: 6px 0 2px; font-size: 12px; }
+.column-picker > input { width: 100%; box-sizing: border-box; }
+
+/* Horizontal source picker for the command bar. */
+.source-picker { border: none; padding: 0; margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: transparent; }
+.source-picker .tabs { margin: 0; }
+.source-picker label { margin: 0 0 0 4px; font-size: 12px; color: var(--wie-text-muted); }
+.source-picker select { width: auto; min-width: 140px; }
+
+.popover { position: relative; display: inline-block; }
+.popover .active { border-color: var(--wie-accent); }
+.popover-panel { position: absolute; top: 100%; left: 0; z-index: 900; margin-top: 4px; width: 340px; max-height: 70vh; overflow: auto; background: var(--wie-surface); border: 1px solid var(--wie-border); border-radius: 6px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35); padding: 10px; }
+.popover-close { display: flex; justify-content: flex-end; }
+
+.filter-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--wie-border-subtle); }
+.filter-bar > input { min-width: 200px; }
+.filter-field { display: flex; align-items: center; gap: 4px; }
+.filter-field label { font-size: 12px; color: var(--wie-text-muted); }
 
 .tabs { display: flex; gap: 4px; margin-bottom: 8px; }
 .tabs button { flex: 1; }
