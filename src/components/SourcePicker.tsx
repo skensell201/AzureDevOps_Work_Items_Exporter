@@ -39,7 +39,7 @@ export function SourcePicker(props: Props): JSX.Element {
   const v = props.value;
 
   function changeProject(project: string): void {
-    props.onChange({ ...v, project, team: '', level: '', query: '' });
+    props.onChange({ ...v, project, team: '', level: '', query: '', itemType: '' });
     props.onProjectSelected(project);
   }
   function changeTeam(team: string): void {

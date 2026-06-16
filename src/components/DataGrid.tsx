@@ -31,11 +31,13 @@ export function DataGrid({ tree, maxRows = 500 }: { tree: TreeTable; maxRows?: n
     });
   }
 
-  // Depth-first walk into a flat list of visible rows.
+  // Depth-first walk into a flat list of visible rows (seen-guard against malformed cycles).
   const visible: { node: TreeNode; depth: number }[] = [];
+  const seen = new Set<number>();
   const visit = (id: number, depth: number): void => {
     const node = tree.nodes.get(id);
-    if (!node) return;
+    if (!node || seen.has(id)) return;
+    seen.add(id);
     visible.push({ node, depth });
     if (expanded.has(id)) {
       for (const childId of node.childIds) visit(childId, depth + 1);
