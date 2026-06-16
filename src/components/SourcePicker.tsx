@@ -7,6 +7,7 @@ export interface Selection {
   team: string;
   level: string;
   query: string;
+  itemType: string;
 }
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
   teams: NamedRef[];
   levels: NamedRef[];
   queryTree: QueryNode[];
+  types?: string[];
   value: Selection;
   onChange: (s: Selection) => void;
   onProjectSelected: (projectId: string) => void;
@@ -78,6 +80,13 @@ export function SourcePicker(props: Props): JSX.Element {
             <option value="">Select level…</option>
             {props.levels.map((l) => (
               <option key={l.id} value={l.id}>{l.name}</option>
+            ))}
+          </select>
+          <label htmlFor="itemType">Work Item Type</label>
+          <select id="itemType" value={v.itemType} onChange={(e) => props.onChange({ ...v, itemType: e.target.value })}>
+            <option value="">All types</option>
+            {(props.types ?? []).map((t) => (
+              <option key={t} value={t}>{t}</option>
             ))}
           </select>
           <button disabled={!v.project || !v.team || !v.level} onClick={() => props.onLoadBacklog(v.project, v.team, v.level)}>
