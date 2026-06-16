@@ -25,6 +25,26 @@ export class WorkItemService {
     return parseRelations(res.workItemRelations ?? []);
   }
 
+  /** Walks up System.Parent from the given ids; returns the ancestor ids (excludes the inputs). */
+  async getAncestors(project: string, ids: number[]): Promise<number[]> {
+    const inputs = new Set(ids);
+    const ancestors = new Set<number>();
+    let frontier = ids;
+    for (let depth = 0; depth < 12 && frontier.length > 0; depth++) {
+      const fields = await this.getFieldsBatch(project, frontier, ['System.Parent']);
+      const next: number[] = [];
+      for (const id of frontier) {
+        const p = fields.get(id)?.['System.Parent'];
+        if (typeof p === 'number' && !inputs.has(p) && !ancestors.has(p)) {
+          ancestors.add(p);
+          next.push(p);
+        }
+      }
+      frontier = next;
+    }
+    return [...ancestors];
+  }
+
   /** Fetches fields for the given ids in chunks; merges into id -> fields.
    *  Uses GET _apis/wit/workitems (universally supported; some on-prem builds 404 on the
    *  POST workitemsbatch route). errorPolicy=omit skips ids the user cannot read. */
