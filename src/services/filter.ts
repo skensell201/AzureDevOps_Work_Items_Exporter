@@ -1,4 +1,4 @@
-import { Table } from '../models/types';
+import { CellValue, Table } from '../models/types';
 
 export interface Filters {
   text: string;
@@ -41,23 +41,29 @@ export function distinctValues(table: Table, col: FilterCol): string[] {
   return [...set].sort((a, b) => a.localeCompare(b));
 }
 
+/** True if a single row (aligned to headers) passes the filters. */
+export function matchesFilters(headers: string[], row: CellValue[], filters: Filters): boolean {
+  const text = filters.text.trim().toLowerCase();
+  if (text) {
+    const anyCell = row.some((cell) => cellText(cell).toLowerCase().includes(text));
+    if (!anyCell) return false;
+  }
+  for (const c of FILTERABLE) {
+    const value = filters.byHeader[c];
+    if (!value) continue;
+    const idx = headers.indexOf(c);
+    if (idx < 0) continue;
+    const cell = cellText(row[idx]);
+    if (c === 'Tags') {
+      if (!tagTokens(cell).includes(value)) return false;
+    } else if (cell !== value) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /** Filters rows by free text (any cell) AND each active per-column selection. */
 export function applyFilters(table: Table, filters: Filters): Table {
-  const text = filters.text.trim().toLowerCase();
-  const active = filterableColumns(table)
-    .map((c) => ({ ...c, value: filters.byHeader[c.header] }))
-    .filter((c) => c.value);
-  const rows = table.rows.filter((row) => {
-    if (text && !row.some((cell) => cellText(cell).toLowerCase().includes(text))) return false;
-    for (const f of active) {
-      const cell = cellText(row[f.index]);
-      if (f.header === 'Tags') {
-        if (!tagTokens(cell).includes(f.value)) return false;
-      } else if (cell !== f.value) {
-        return false;
-      }
-    }
-    return true;
-  });
-  return { ...table, rows };
+  return { ...table, rows: table.rows.filter((row) => matchesFilters(table.headers, row, filters)) };
 }

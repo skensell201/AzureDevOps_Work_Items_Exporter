@@ -1,4 +1,4 @@
-import { applyFilters, distinctValues, filterableColumns, EMPTY_FILTERS } from '../filter';
+import { applyFilters, distinctValues, filterableColumns, matchesFilters, EMPTY_FILTERS } from '../filter';
 import { Table } from '../../models/types';
 
 const table: Table = {
@@ -50,5 +50,24 @@ describe('applyFilters', () => {
   });
   it('ignores blank field selections', () => {
     expect(applyFilters(table, { text: '', byHeader: { State: '' } }).rows).toHaveLength(3);
+  });
+});
+
+describe('matchesFilters', () => {
+  const headers = table.headers;
+  it('returns true for empty filters', () => {
+    expect(matchesFilters(headers, table.rows[0], EMPTY_FILTERS)).toBe(true);
+  });
+  it('matches text in any cell (case-insensitive) and rejects non-matches', () => {
+    expect(matchesFilters(headers, table.rows[0], { text: 'alpha', byHeader: {} })).toBe(true);
+    expect(matchesFilters(headers, table.rows[1], { text: 'alpha', byHeader: {} })).toBe(false);
+  });
+  it('exact-matches a field filter (AND with text)', () => {
+    expect(matchesFilters(headers, table.rows[1], { text: '', byHeader: { State: 'Active' } })).toBe(true);
+    expect(matchesFilters(headers, table.rows[0], { text: '', byHeader: { State: 'Active' } })).toBe(false);
+  });
+  it('matches a tag token among several', () => {
+    expect(matchesFilters(headers, table.rows[0], { text: '', byHeader: { Tags: 'a' } })).toBe(true);
+    expect(matchesFilters(headers, table.rows[1], { text: '', byHeader: { Tags: 'a' } })).toBe(false);
   });
 });
