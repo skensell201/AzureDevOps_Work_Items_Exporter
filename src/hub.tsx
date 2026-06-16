@@ -2,7 +2,7 @@ import 'azure-devops-ui/Core/override.css';
 import './hub.css';
 import * as SDK from 'azure-devops-extension-sdk';
 import { CommonServiceIds, ILocationService, IExtensionDataService } from 'azure-devops-extension-api';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ReactDOM from 'react-dom';
 import { Column, FieldDef, NamedRef, QueryNode, Table, Template, TemplateSource, SharedUser } from './models/types';
 import { RestApiClient, ApiError } from './services/ApiClient';
@@ -22,6 +22,9 @@ import { ExportMenu } from './components/ExportMenu';
 import { ProgressBar } from './components/ProgressBar';
 import { TemplatesPanel } from './components/TemplatesPanel';
 import { TemplatesManager } from './components/TemplatesManager';
+import { FilterBar } from './components/FilterBar';
+import { Popover } from './components/Popover';
+import { applyFilters, EMPTY_FILTERS, Filters } from './services/filter';
 
 interface Services {
   projects: ProjectService;
@@ -72,9 +75,12 @@ function App({ services }: { services: Services }): JSX.Element {
   const [lastSource, setLastSource] = useState<TemplateSource | null>(null);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [managerOpen, setManagerOpen] = useState(false);
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [showFilter, setShowFilter] = useState(false);
 
   const canSave = lastSource !== null;
   const visible = visibleTemplates(templates, services.me.id);
+  const filtered = useMemo(() => (table ? applyFilters(table, filters) : null), [table, filters]);
 
   useEffect(() => {
     void (async () => {
@@ -138,6 +144,7 @@ function App({ services }: { services: Services }): JSX.Element {
       setTable(t);
       setWarnings(w);
       setBaseName(name);
+      setFilters(EMPTY_FILTERS);
     } catch (e) {
       setTable(null);
       if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
@@ -268,57 +275,65 @@ function App({ services }: { services: Services }): JSX.Element {
   return (
     <div>
       <h2>Work Items Export</h2>
-      <div className="layout">
-        <div className="sidebar">
-          <SourcePicker
-            projects={projects}
-            teams={teams}
-            levels={levels}
-            queryTree={queryTree}
-            value={selection}
-            onChange={handleSelectionChange}
-            onProjectSelected={(p) => void onProjectSelected(p)}
-            onTeamSelected={(p, t) => void onTeamSelected(p, t)}
-            onRefreshQueries={() => void onRefreshQueries()}
-            onLoadBacklog={loadBacklog}
-            onLoadQuery={loadQuery}
-          />
+      <div className="command-bar">
+        <SourcePicker
+          projects={projects}
+          teams={teams}
+          levels={levels}
+          queryTree={queryTree}
+          value={selection}
+          onChange={handleSelectionChange}
+          onProjectSelected={(p) => void onProjectSelected(p)}
+          onTeamSelected={(p, t) => void onTeamSelected(p, t)}
+          onRefreshQueries={() => void onRefreshQueries()}
+          onLoadBacklog={loadBacklog}
+          onLoadQuery={loadQuery}
+        />
+      </div>
+      <div className="command-bar actions">
+        {filtered && <ExportMenu table={filtered} baseName={baseName} />}
+        <Popover label="Columns">
           <ColumnPicker fields={fields} value={columns} onChange={setColumns} types={witTypes} />
-          {lastLoad && (
-            <button onClick={() => void lastLoad()} disabled={progress !== null}>
-              Apply columns / reload
-            </button>
-          )}
+        </Popover>
+        <Popover label="Templates">
           <TemplatesPanel
             count={visible.length}
             canSave={canSave}
             onSave={(name) => void onSaveTemplate(name)}
             onOpenManager={() => setManagerOpen(true)}
           />
-        </div>
-        <div className="main">
-          <ProgressBar step={progress} />
-          {error && <div className="error-box">{error}</div>}
-          {services.templatesWarning && (
-            <div className="warnings">
-              <div>&#9888; {services.templatesWarning}</div>
-            </div>
-          )}
-          {warnings.length > 0 && (
-            <div className="warnings">
-              {warnings.map((w, i) => (
-                <div key={i}>&#9888; {w}</div>
-              ))}
-            </div>
-          )}
-          {table && (
-            <>
-              <ExportMenu table={table} baseName={baseName} />
-              <DataGrid table={table} maxRows={500} />
-            </>
-          )}
-        </div>
+        </Popover>
+        {lastLoad && (
+          <button onClick={() => void lastLoad()} disabled={progress !== null}>
+            Apply columns / reload
+          </button>
+        )}
+        <span className="spacer" />
+        {filtered && table && (
+          <span className="count">
+            {filtered.rows.length} of {table.rows.length}
+          </span>
+        )}
+        <button className={showFilter ? 'active' : ''} onClick={() => setShowFilter((s) => !s)}>
+          &#9906; Filter
+        </button>
       </div>
+      {showFilter && table && <FilterBar table={table} filters={filters} onChange={setFilters} />}
+      <ProgressBar step={progress} />
+      {error && <div className="error-box">{error}</div>}
+      {services.templatesWarning && (
+        <div className="warnings">
+          <div>&#9888; {services.templatesWarning}</div>
+        </div>
+      )}
+      {warnings.length > 0 && (
+        <div className="warnings">
+          {warnings.map((w, i) => (
+            <div key={i}>&#9888; {w}</div>
+          ))}
+        </div>
+      )}
+      {filtered && <DataGrid table={filtered} maxRows={500} />}
       {managerOpen && (
         <TemplatesManager
           templates={visible}
