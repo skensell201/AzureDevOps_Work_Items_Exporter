@@ -8,7 +8,7 @@
   "categories": ["Boards"],
   "targets": [{ "id": "Microsoft.TeamFoundation.Server", "version": "[17.0,)" }],
   "icons": { "default": "images/icon.png" },
-  "scopes": ["vso.work"],
+  "scopes": ["vso.work", "vso.project", "vso.identity"],
   "contributions": [
     {
       "id": "backlog-export-csv",
