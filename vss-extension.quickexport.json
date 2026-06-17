@@ -1,0 +1,42 @@
+{
+  "manifestVersion": 1,
+  "id": "workitems-quickexport",
+  "publisher": "local",
+  "version": "0.1.0",
+  "name": "Backlog Quick Export",
+  "description": "Download the current native backlog level to CSV or Excel from the right-click menu.",
+  "categories": ["Boards"],
+  "targets": [{ "id": "Microsoft.TeamFoundation.Server", "version": "[17.0,)" }],
+  "icons": { "default": "images/icon.png" },
+  "scopes": ["vso.work"],
+  "contributions": [
+    {
+      "id": "backlog-export-csv",
+      "type": "ms.vss-web.action",
+      "targets": ["ms.vss-work-web.backlog-item-menu"],
+      "properties": {
+        "text": "Download CSV",
+        "title": "Download this backlog level as CSV",
+        "icon": "images/icon.png",
+        "group": "actions",
+        "uri": "dist/menu.html"
+      }
+    },
+    {
+      "id": "backlog-export-excel",
+      "type": "ms.vss-web.action",
+      "targets": ["ms.vss-work-web.backlog-item-menu"],
+      "properties": {
+        "text": "Download Excel",
+        "title": "Download this backlog level as Excel",
+        "icon": "images/icon.png",
+        "group": "actions",
+        "uri": "dist/menu.html"
+      }
+    }
+  ],
+  "files": [
+    { "path": "dist", "addressable": true },
+    { "path": "images", "addressable": true }
+  ]
+}
