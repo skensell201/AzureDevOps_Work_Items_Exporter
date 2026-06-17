@@ -2,7 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: { hub: './src/hub.tsx' },
+  entry: { hub: './src/hub.tsx', quickexport: './src/quickexport/menu.ts' },
   output: {
     path: path.resolve(__dirname, 'dist'),
     // Content-hashed filename so a new build is never served from a stale browser/CDN cache.
@@ -21,5 +21,8 @@ module.exports = {
     ],
   },
   // Injects the hashed bundle into hub.html so the page always references the current build.
-  plugins: [new HtmlWebpackPlugin({ template: 'src/hub.html', filename: 'hub.html', inject: 'body' })],
+  plugins: [
+    new HtmlWebpackPlugin({ template: 'src/hub.html', filename: 'hub.html', chunks: ['hub'], inject: 'body' }),
+    new HtmlWebpackPlugin({ template: 'src/quickexport/menu.html', filename: 'menu.html', chunks: ['quickexport'], inject: 'body' }),
+  ],
 };
