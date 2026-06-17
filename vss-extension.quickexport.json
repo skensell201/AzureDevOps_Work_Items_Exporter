@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "workitems-quickexport",
   "publisher": "local",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "name": "Backlog Quick Export",
   "description": "Download the current native backlog level to CSV or Excel from the right-click menu.",
   "categories": ["Boards"],
