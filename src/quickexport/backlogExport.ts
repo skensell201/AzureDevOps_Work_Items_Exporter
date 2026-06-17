@@ -39,11 +39,8 @@ export async function buildBacklogExport(deps: ExportDeps, req: ExportRequest): 
 
   const ids = await deps.backlog.getBacklogWorkItemIds(req.project, req.team, match.id);
   const columns = quickExportColumns();
-  const fields = await deps.workItems.getFieldsBatch(
-    req.project,
-    ids,
-    columns.map((c) => (c.kind === 'field' ? c.referenceName : '')).filter(Boolean)
-  );
+  const fieldNames = columns.filter((c) => c.kind === 'field').map((c) => c.referenceName);
+  const fields = await deps.workItems.getFieldsBatch(req.project, ids, fieldNames);
   const table = buildTable({ rowIds: ids, columns, fields, rollups: emptyRollups() });
 
   const base = `${req.team} - ${match.name}`;

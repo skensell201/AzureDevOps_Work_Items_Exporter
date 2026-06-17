@@ -51,6 +51,6 @@ describe('buildBacklogExport', () => {
   it('throws a clear error when the level name is unknown', async () => {
     await expect(
       buildBacklogExport(deps(), { project: 'P', team: 'Tm', level: 'Nope', format: 'csv' })
-    ).rejects.toThrow(/Backlog level "Nope" not found/);
+    ).rejects.toThrow(/Backlog level "Nope" not found.*Available: Epics, Stories/);
   });
 });
