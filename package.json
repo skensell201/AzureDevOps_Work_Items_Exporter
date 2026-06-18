@@ -7,8 +7,7 @@
     "test": "jest",
     "lint": "eslint src --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
-    "package": "npm run build && tfx extension create --manifest-globs vss-extension.json --output-path out",
-    "package:quickexport": "npm run build && tfx extension create --manifest-globs vss-extension.quickexport.json --output-path out"
+    "package": "npm run build && tfx extension create --manifest-globs vss-extension.json --output-path out"
   },
   "dependencies": {
     "azure-devops-extension-api": "^4.230.0",
